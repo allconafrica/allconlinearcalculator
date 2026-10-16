@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ALLCON - Linear Cutting & Nesting Estimator</title>
+  
+  <!-- SAW / CUTTING FAVICON -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e53935'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0d0f12',
+            cardBg: '#14181d',
+            cardBorder: '#232931',
+            allconRed: '#e53935',
+            allconRedHover: '#f44336'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0d0f12;
+      color: #f0f3f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    input, select, textarea {
+      background-color: #090a0c !important;
+      color: #ffffff !important;
+      border-color: #232931 !important;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #e53935 !important;
+      box-shadow: 0 0 0 1px #e53935;
+    }
+
+    .bar-visual-container {
+      background-color: #090a0c;
+      border: 1px solid #232931;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      height: 38px;
+      width: 100%;
+    }
+
+    .cut-segment {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #ffffff;
+      border-right: 2px solid #0d0f12;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      padding: 0 4px;
+      transition: all 0.2s;
+    }
+
+    .offcut-segment {
+      height: 100%;
+      background-color: rgba(229, 57, 53, 0.15);
+      border: 1px dashed #e53935;
+      color: #ef5350;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- HEADER -->
+  <header class="bg-[#14181d] border-b-2 border-allconRed px-6 py-4 shadow-lg">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-4">
+        <a href="https://allconafrica.github.io/allcondashboard/" class="flex items-center gap-3 hover:opacity-90 transition">
+          <img src="./ALLCON-Logo.jpg" alt="ALLCON Logo" class="h-10 w-auto rounded object-contain" onerror="this.onerror=null; this.outerHTML='<div class=\'bg-allconRed text-white font-black px-3 py-1 rounded text-xl tracking-wider\'>ALLCON</div>';">
+        </a>
+        <div>
+          <h1 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
+            Linear Cutting & Nesting Estimator
+          </h1>
+          <p class="text-xs text-zinc-400">1D Material Cutting & Stock Bar Optimization Tool</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="https://allconafrica.github.io/allcondashboard/" class="bg-[#1f2630] hover:bg-allconRed text-white text-xs font-bold px-4 py-2.5 rounded-lg border border-cardBorder transition flex items-center gap-2">
+          <i class="fa-solid fa-house text-xs"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-6 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+    <!-- LEFT COLUMN: INPUT PARAMETERS & CUT LIST -->
+    <div class="lg:col-span-5 space-y-6">
+
+      <!-- CONFIGURATION CARD -->
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-5 shadow-xl">
+        <h2 class="text-sm font-black text-allconRed uppercase tracking-wider mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-sliders"></i> 1. Stock & Blade Setup
+        </h2>
+
+        <div class="grid grid-cols-2 gap-4 text-xs font-semibold">
+          <div>
+            <label class="block text-zinc-400 mb-1.5 uppercase">Stock Bar Length (mm)</label>
+            <input type="number" id="stockLength" value="6000" step="100" class="w-full p-2.5 rounded-lg border font-bold text-sm">
+          </div>
+          <div>
+            <label class="block text-zinc-400 mb-1.5 uppercase">Blade / Kerf Width (mm)</label>
+            <input type="number" id="kerfWidth" value="3" step="0.5" class="w-full p-2.5 rounded-lg border font-bold text-sm">
+          </div>
+        </div>
+      </div>
+
+      <!-- REQUIRED CUTS CARD -->
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-5 shadow-xl">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-sm font-black text-allconRed uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-list-check"></i> 2. Required Cut Lengths
+          </h2>
+          <button onclick="addCutRow()" class="bg-allconRed hover:bg-allconRedHover text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-plus text-[10px]"></i> Add Length
+          </button>
+        </div>
+
+        <!-- CUT LIST INPUT TABLE -->
+        <div class="space-y-3" id="cutListRows">
+          <!-- Dynamic Input Rows inserted here -->
+        </div>
+
+        <button onclick="calculateNesting()" class="w-full mt-6 bg-allconRed hover:bg-allconRedHover text-white font-black py-3 rounded-lg text-sm shadow-lg transition uppercase tracking-wider flex items-center justify-center gap-2">
+          <i class="fa-solid fa-calculator"></i> Calculate Nesting & Stock Required
+        </button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: RESULTS & VISUAL NESTING LAYOUT -->
+    <div class="lg:col-span-7 space-y-6">
+
+      <!-- SUMMARY METRICS -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-cardBg border border-cardBorder p-4 rounded-xl text-center">
+          <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Stock Bars Required</div>
+          <div class="text-3xl font-black text-white" id="resStockBars">0</div>
+          <div class="text-[10px] text-zinc-400 mt-1" id="resStockLengthLabel">6000mm length</div>
+        </div>
+
+        <div class="bg-cardBg border border-cardBorder p-4 rounded-xl text-center">
+          <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Total Cut Length</div>
+          <div class="text-2xl font-black text-emerald-400" id="resTotalCutLength">0 mm</div>
+          <div class="text-[10px] text-zinc-400 mt-1" id="resTotalPieces">0 pieces</div>
+        </div>
+
+        <div class="bg-cardBg border border-cardBorder p-4 rounded-xl text-center">
+          <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Total Scrap / Offcut</div>
+          <div class="text-2xl font-black text-red-400" id="resTotalOffcut">0 mm</div>
+          <div class="text-[10px] text-zinc-400 mt-1" id="resKerfLoss">0mm blade loss</div>
+        </div>
+
+        <div class="bg-cardBg border border-cardBorder p-4 rounded-xl text-center">
+          <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Material Yield</div>
+          <div class="text-3xl font-black text-white" id="resMaterialYield">0%</div>
+          <div class="text-[10px] text-emerald-400 mt-1 font-semibold" id="resEfficiencyRating">-- Efficiency</div>
+        </div>
+      </div>
+
+      <!-- VISUAL BAR NESTING LAYOUT -->
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-5 shadow-xl">
+        <div class="flex justify-between items-center mb-4 border-b border-cardBorder pb-3">
+          <h2 class="text-sm font-black text-allconRed uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-layer-group"></i> Cutting Diagram & Layout
+          </h2>
+          <span class="text-xs text-zinc-400 font-mono" id="diagramHeaderCount">0 Stock Bars</span>
+        </div>
+
+        <div id="nestingDiagramContainer" class="space-y-4 max-h-[500px] overflow-y-auto pr-1">
+          <div class="text-center py-12 text-zinc-500 text-xs">
+            Enter your required cut lengths on the left and click <strong>Calculate</strong> to display the optimized layout.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-cardBg border-t border-cardBorder py-4 text-center text-xs text-zinc-500">
+    ALLCON Fabrication & Engineering &copy; 2026 | Technical Buyer Tools
+  </footer>
+
+  <script>
+    // Distinct color palette for cut pieces in visual diagram
+    const cutColors = [
+      '#0288d1', '#388e3c', '#f57c00', '#7b1fa2', '#009688', 
+      '#c2185b', '#512da8', '#00796b', '#afb42b', '#e64a19'
+    ];
+
+    let initialCuts = [
+      { length: 1450, qty: 3, label: 'Main Frame' },
+      { length: 820, qty: 4, label: 'Cross Member' },
+      { length: 450, qty: 6, label: 'Stiffener Gusset' }
+    ];
+
+    function renderCutRows() {
+      const container = document.getElementById('cutListRows');
+      container.innerHTML = initialCuts.map((cut, idx) => `
+        <div class="grid grid-cols-12 gap-2 items-center bg-[#181d24] p-2.5 rounded-lg border border-cardBorder">
+          <div class="col-span-5">
+            <input type="number" value="${cut.length}" placeholder="Length (mm)" onchange="updateCutData(${idx}, 'length', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
+          </div>
+          <div class="col-span-3">
+            <input type="number" value="${cut.qty}" placeholder="Qty" onchange="updateCutData(${idx}, 'qty', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
+          </div>
+          <div class="col-span-3">
+            <input type="text" value="${cut.label || ''}" placeholder="Tag/ID" onchange="updateCutData(${idx}, 'label', this.value)" class="w-full p-2 rounded text-xs">
+          </div>
+          <div class="col-span-1 text-right">
+            <button onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1">
+              <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addCutRow() {
+      initialCuts.push({ length: 1000, qty: 1, label: '' });
+      renderCutRows();
+    }
+
+    function removeCutRow(index) {
+      initialCuts.splice(index, 1);
+      renderCutRows();
+    }
+
+    function updateCutData(index, field, value) {
+      if (field === 'length' || field === 'qty') {
+        initialCuts[index][field] = Math.max(0, parseFloat(value) || 0);
+      } else {
+        initialCuts[index][field] = value;
+      }
+    }
+
+    function calculateNesting() {
+      const stockLength = parseFloat(document.getElementById('stockLength').value) || 6000;
+      const kerf = parseFloat(document.getElementById('kerfWidth').value) || 0;
+
+      // Flatten items into individual pieces array sorted descending for First Fit Decreasing algorithm
+      let pieces = [];
+      initialCuts.forEach((item, groupIdx) => {
+        const length = parseFloat(item.length) || 0;
+        const qty = parseInt(item.qty) || 0;
+        const label = item.label || `Part ${groupIdx + 1}`;
+        const color = cutColors[groupIdx % cutColors.length];
+
+        if (length > 0 && qty > 0) {
+          if (length > stockLength) {
+            alert(`Cut length (${length}mm) exceeds stock bar length (${stockLength}mm).`);
+          }
+          for (let i = 0; i < qty; i++) {
+            pieces.push({ length, label, color, id: `${groupIdx}_${i}` });
+          }
+        }
+      });
+
+      if (pieces.length === 0) {
+        alert('Please enter at least one valid cut length and quantity.');
+        return;
+      }
+
+      // Sort largest length first for best nesting efficiency
+      pieces.sort((a, b) => b.length - a.length);
+
+      // First Fit Decreasing (FFD) Bin Packing Algorithm
+      let bars = [];
+
+      pieces.forEach(piece => {
+        let placed = false;
+
+        for (let bar of bars) {
+          // Check if piece fits considering kerf/blade loss
+          const neededSpace = bar.cuts.length === 0 ? piece.length : (piece.length + kerf);
+          if (bar.remaining >= neededSpace) {
+            bar.cuts.push(piece);
+            bar.used += neededSpace;
+            bar.remaining -= neededSpace;
+            placed = true;
+            break;
+          }
+        }
+
+        if (!placed) {
+          // Open a new stock bar
+          bars.push({
+            id: bars.length + 1,
+            cuts: [piece],
+            used: piece.length,
+            remaining: stockLength - piece.length
+          });
+        }
+      });
+
+      renderResults(bars, stockLength, kerf);
+    }
+
+    function renderResults(bars, stockLength, kerf) {
+      const totalCutLength = bars.reduce((acc, bar) => {
+        return acc + bar.cuts.reduce((sum, cut) => sum + cut.length, 0);
+      }, 0);
+
+      const totalPiecesCount = bars.reduce((acc, bar) => acc + bar.cuts.length, 0);
+      const totalStockLength = bars.length * stockLength;
+      const totalOffcut = totalStockLength - totalCutLength;
+      const yieldPercent = totalStockLength > 0 ? ((totalCutLength / totalStockLength) * 100).toFixed(1) : 0;
+      
+      const totalKerfLoss = bars.reduce((acc, bar) => {
+        return acc + (bar.cuts.length > 1 ? (bar.cuts.length - 1) * kerf : 0);
+      }, 0);
+
+      // Update Summary UI
+      document.getElementById('resStockBars').innerText = bars.length;
+      document.getElementById('resStockLengthLabel').innerText = `${stockLength}mm stock length`;
+
+      document.getElementById('resTotalCutLength').innerText = `${totalCutLength.toLocaleString()} mm`;
+      document.getElementById('resTotalPieces').innerText = `${totalPiecesCount} pieces total`;
+
+      document.getElementById('resTotalOffcut').innerText = `${totalOffcut.toLocaleString()} mm`;
+      document.getElementById('resKerfLoss').innerText = `${totalKerfLoss}mm blade loss`;
+
+      document.getElementById('resMaterialYield').innerText = `${yieldPercent}%`;
+      
+      const efficiencyEl = document.getElementById('resEfficiencyRating');
+      if (yieldPercent >= 90) {
+        efficiencyEl.innerText = '🔥 High Efficiency';
+        efficiencyEl.className = 'text-[10px] text-emerald-400 mt-1 font-bold';
+      } else if (yieldPercent >= 75) {
+        efficiencyEl.innerText = '👍 Moderate Yield';
+        efficiencyEl.className = 'text-[10px] text-amber-400 mt-1 font-bold';
+      } else {
+        efficiencyEl.innerText = '⚠️ High Scrap Ratio';
+        efficiencyEl.className = 'text-[10px] text-red-400 mt-1 font-bold';
+      }
+
+      document.getElementById('diagramHeaderCount').innerText = `${bars.length} Stock Bar${bars.length === 1 ? '' : 's'}`;
+
+      // Render Visual Bars Diagram
+      const diagramContainer = document.getElementById('nestingDiagramContainer');
+      diagramContainer.innerHTML = bars.map(bar => {
+        const offcutPercent = ((bar.remaining / stockLength) * 100).toFixed(1);
+
+        const cutsHtml = bar.cuts.map(cut => {
+          const cutPct = ((cut.length / stockLength) * 100).toFixed(2);
+          return `
+            <div class="cut-segment" style="width: ${cutPct}%; background-color: ${cut.color};" title="${cut.label}: ${cut.length}mm">
+              ${cut.length}mm ${cut.label ? `(${cut.label})` : ''}
+            </div>
+          `;
+        }).join('');
+
+        const offcutHtml = bar.remaining > 0 ? `
+          <div class="offcut-segment" style="width: ${offcutPercent}%;" title="Scrap / Offcut: ${bar.remaining}mm">
+            ${bar.remaining}mm rem
+          </div>
+        ` : '';
+
+        return `
+          <div class="bg-[#181d24] border border-cardBorder rounded-xl p-3">
+            <div class="flex justify-between items-center text-xs font-bold mb-2">
+              <span class="text-white">Stock Bar #${bar.id}</span>
+              <span class="text-zinc-400">Used: ${(stockLength - bar.remaining)}mm / Offcut: <span class="text-red-400">${bar.remaining}mm</span></span>
+            </div>
+            <div class="bar-visual-container">
+              ${cutsHtml}
+              ${offcutHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Initialize Page
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCutRows();
+      calculateNesting();
+    });
+  </script>
+</body>
+</html>
