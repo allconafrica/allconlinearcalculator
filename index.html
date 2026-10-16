@@ -138,7 +138,7 @@
 
       <!-- REQUIRED CUTS CARD -->
       <div class="bg-cardBg border border-cardBorder rounded-xl p-5 shadow-xl">
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex justify-between items-center mb-3">
           <h2 class="text-sm font-black text-allconRed uppercase tracking-wider flex items-center gap-2">
             <i class="fa-solid fa-list-check"></i> 2. Required Cut Lengths
           </h2>
@@ -147,8 +147,16 @@
           </button>
         </div>
 
+        <!-- COLUMN HEADERS -->
+        <div class="grid grid-cols-12 gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-wider px-1 mb-2">
+          <div class="col-span-5">Length (mm)</div>
+          <div class="col-span-3">Quantity</div>
+          <div class="col-span-3">Name / Tag</div>
+          <div class="col-span-1 text-right"></div>
+        </div>
+
         <!-- CUT LIST INPUT TABLE -->
-        <div class="space-y-3" id="cutListRows">
+        <div class="space-y-2.5" id="cutListRows">
           <!-- Dynamic Input Rows inserted here -->
         </div>
 
@@ -221,10 +229,9 @@
       '#c2185b', '#512da8', '#00796b', '#afb42b', '#e64a19'
     ];
 
+    // Single sample cut line
     let initialCuts = [
-      { length: 1450, qty: 3, label: 'Main Frame' },
-      { length: 820, qty: 4, label: 'Cross Member' },
-      { length: 450, qty: 6, label: 'Stiffener Gusset' }
+      { length: 1450, qty: 4, label: 'Main Frame' }
     ];
 
     function renderCutRows() {
@@ -232,16 +239,16 @@
       container.innerHTML = initialCuts.map((cut, idx) => `
         <div class="grid grid-cols-12 gap-2 items-center bg-[#181d24] p-2.5 rounded-lg border border-cardBorder">
           <div class="col-span-5">
-            <input type="number" value="${cut.length}" placeholder="Length (mm)" onchange="updateCutData(${idx}, 'length', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
+            <input type="number" value="${cut.length}" placeholder="e.g. 1450" onchange="updateCutData(${idx}, 'length', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
           </div>
           <div class="col-span-3">
-            <input type="number" value="${cut.qty}" placeholder="Qty" onchange="updateCutData(${idx}, 'qty', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
+            <input type="number" value="${cut.qty}" placeholder="e.g. 4" onchange="updateCutData(${idx}, 'qty', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
           </div>
           <div class="col-span-3">
-            <input type="text" value="${cut.label || ''}" placeholder="Tag/ID" onchange="updateCutData(${idx}, 'label', this.value)" class="w-full p-2 rounded text-xs">
+            <input type="text" value="${cut.label || ''}" placeholder="e.g. Main Frame" onchange="updateCutData(${idx}, 'label', this.value)" class="w-full p-2 rounded text-xs">
           </div>
           <div class="col-span-1 text-right">
-            <button onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1">
+            <button onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1" title="Remove line">
               <i class="fa-solid fa-trash-can text-xs"></i>
             </button>
           </div>
@@ -271,7 +278,6 @@
       const stockLength = parseFloat(document.getElementById('stockLength').value) || 6000;
       const kerf = parseFloat(document.getElementById('kerfWidth').value) || 0;
 
-      // Flatten items into individual pieces array sorted descending for First Fit Decreasing algorithm
       let pieces = [];
       initialCuts.forEach((item, groupIdx) => {
         const length = parseFloat(item.length) || 0;
@@ -294,17 +300,14 @@
         return;
       }
 
-      // Sort largest length first for best nesting efficiency
       pieces.sort((a, b) => b.length - a.length);
 
-      // First Fit Decreasing (FFD) Bin Packing Algorithm
       let bars = [];
 
       pieces.forEach(piece => {
         let placed = false;
 
         for (let bar of bars) {
-          // Check if piece fits considering kerf/blade loss
           const neededSpace = bar.cuts.length === 0 ? piece.length : (piece.length + kerf);
           if (bar.remaining >= neededSpace) {
             bar.cuts.push(piece);
@@ -316,7 +319,6 @@
         }
 
         if (!placed) {
-          // Open a new stock bar
           bars.push({
             id: bars.length + 1,
             cuts: [piece],
@@ -343,7 +345,6 @@
         return acc + (bar.cuts.length > 1 ? (bar.cuts.length - 1) * kerf : 0);
       }, 0);
 
-      // Update Summary UI
       document.getElementById('resStockBars').innerText = bars.length;
       document.getElementById('resStockLengthLabel').innerText = `${stockLength}mm stock length`;
 
@@ -369,7 +370,6 @@
 
       document.getElementById('diagramHeaderCount').innerText = `${bars.length} Stock Bar${bars.length === 1 ? '' : 's'}`;
 
-      // Render Visual Bars Diagram
       const diagramContainer = document.getElementById('nestingDiagramContainer');
       diagramContainer.innerHTML = bars.map(bar => {
         const offcutPercent = ((bar.remaining / stockLength) * 100).toFixed(1);
@@ -404,7 +404,6 @@
       }).join('');
     }
 
-    // Initialize Page
     document.addEventListener('DOMContentLoaded', () => {
       renderCutRows();
       calculateNesting();
