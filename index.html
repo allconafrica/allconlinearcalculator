@@ -10,6 +10,8 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- HTML2PDF LIBRARY FOR PDF DOWNLOAD -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -84,6 +86,17 @@
       font-weight: 700;
       overflow: hidden;
       white-space: nowrap;
+    }
+
+    /* Print / PDF generation styles */
+    .pdf-render-mode {
+      background-color: #0d0f12 !important;
+      color: #f0f3f6 !important;
+      padding: 20px !important;
+    }
+    .pdf-render-mode #nestingDiagramContainer {
+      max-height: none !important;
+      overflow: visible !important;
     }
   </style>
 </head>
@@ -168,7 +181,17 @@
     </div>
 
     <!-- RIGHT COLUMN: RESULTS & VISUAL NESTING LAYOUT -->
-    <div class="lg:col-span-7 space-y-6">
+    <div class="lg:col-span-7 space-y-6" id="nestingPdfArea">
+
+      <!-- DOWNLOAD BUTTON BAR -->
+      <div class="flex justify-between items-center bg-cardBg border border-cardBorder p-3 rounded-xl shadow-lg">
+        <span class="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-chart-pie text-allconRed"></i> Nesting Results Overview
+        </span>
+        <button onclick="downloadNestingPDF()" class="bg-allconRed hover:bg-allconRedHover text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-2 shadow">
+          <i class="fa-solid fa-file-pdf"></i> Download PDF
+        </button>
+      </div>
 
       <!-- SUMMARY METRICS -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -402,6 +425,31 @@
           </div>
         `;
       }).join('');
+    }
+
+    function downloadNestingPDF() {
+      const element = document.getElementById('nestingPdfArea');
+      const container = document.getElementById('nestingDiagramContainer');
+
+      // Expand container so all bars print on PDF without scrollbars
+      const originalMaxHeight = container.style.maxHeight;
+      const originalOverflow = container.style.overflowY;
+      container.style.maxHeight = 'none';
+      container.style.overflowY = 'visible';
+
+      const opt = {
+        margin:       [0.3, 0.3, 0.3, 0.3],
+        filename:     `ALLCON_Nesting_Layout_${new Date().toISOString().slice(0,10)}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, backgroundColor: '#0d0f12', useCORS: true },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        // Revert styles after PDF generation
+        container.style.maxHeight = originalMaxHeight;
+        container.style.overflowY = originalOverflow;
+      });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
