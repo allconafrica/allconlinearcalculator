@@ -90,7 +90,7 @@
       line-height: 1.1;
     }
 
-    /* PRINT / PDF EXPORT STYLING (Ink-friendly white background & hidden input panels) */
+    /* PRINT / PDF EXPORT STYLING */
     @media print {
       body {
         background-color: #ffffff !important;
@@ -107,11 +107,9 @@
       header p {
         color: #555555 !important;
       }
-      /* Hide input parameters and cut list form on PDF export */
-      .input-sidebar-column, button, .no-print {
+      .input-sidebar-column, button, .no-print, .mode-toggle-banner {
         display: none !important;
       }
-      /* Make results column take full width */
       .results-main-column {
         grid-column: span 12 !important;
         width: 100% !important;
@@ -172,8 +170,18 @@
   <!-- MAIN CONTAINER -->
   <main class="max-w-7xl mx-auto px-6 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-    <!-- LEFT COLUMN: INPUT PARAMETERS & CUT LIST (Hidden on Print/PDF) -->
+    <!-- LEFT COLUMN: INPUT PARAMETERS & CUT LIST -->
     <div class="lg:col-span-5 space-y-6 input-sidebar-column">
+
+      <!-- MODE TOGGLE BANNER -->
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-2.5 shadow-xl flex items-center justify-between gap-2 mode-toggle-banner">
+        <button id="btnModeSingle" onclick="switchMode('single')" class="flex-1 py-2 rounded-lg text-xs font-black uppercase transition bg-allconRed text-white shadow">
+          <i class="fa-solid fa-cube mr-1.5"></i> Single Profile Mode
+        </button>
+        <button id="btnModeMulti" onclick="switchMode('multi')" class="flex-1 py-2 rounded-md text-xs font-bold uppercase transition text-zinc-400 hover:text-white">
+          <i class="fa-solid fa-cubes mr-1.5"></i> Multi-Material BOM
+        </button>
+      </div>
 
       <!-- CONFIGURATION CARD -->
       <div class="bg-cardBg border border-cardBorder rounded-xl p-5 shadow-xl space-y-4">
@@ -206,21 +214,18 @@
           </button>
         </div>
 
-        <!-- COLUMN HEADERS -->
-        <div class="grid grid-cols-12 gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-wider px-1 mb-2">
-          <div class="col-span-5">Length (mm)</div>
-          <div class="col-span-3">Quantity</div>
-          <div class="col-span-3">Name / Tag</div>
-          <div class="col-span-1 text-right"></div>
+        <!-- DYNAMIC COLUMN HEADERS DEPENDING ON MODE -->
+        <div id="cutTableHeaders" class="grid grid-cols-12 gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-wider px-1 mb-2">
+          <!-- Rendered via Javascript -->
         </div>
 
         <!-- CUT LIST INPUT TABLE -->
-        <div class="space-y-2.5 max-h-[300px] overflow-y-auto pr-1" id="cutListRows">
+        <div class="space-y-2.5 max-h-[320px] overflow-y-auto pr-1" id="cutListRows">
           <!-- Dynamic Input Rows inserted here -->
         </div>
 
         <button onclick="calculateNesting()" class="w-full mt-6 bg-allconRed hover:bg-allconRedHover text-white font-black py-3 rounded-lg text-sm shadow-lg transition uppercase tracking-wider flex items-center justify-center gap-2">
-          <i class="fa-solid fa-calculator"></i> Calculate Multi-Stock Nesting
+          <i class="fa-solid fa-calculator"></i> Calculate Nesting
         </button>
       </div>
 
@@ -250,7 +255,7 @@
         </div>
 
         <div class="bg-cardBg border border-cardBorder p-4 rounded-xl text-center">
-          <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Material Yield</div>
+          <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Overall Material Yield</div>
           <div class="text-3xl font-black text-white" id="resMaterialYield">0%</div>
           <div class="text-[10px] text-emerald-400 mt-1 font-semibold" id="resEfficiencyRating">-- Efficiency</div>
         </div>
@@ -263,7 +268,7 @@
             <h2 class="text-sm font-black text-allconRed uppercase tracking-wider flex items-center gap-2">
               <i class="fa-solid fa-layer-group"></i> Cutting Diagram & Layout
             </h2>
-            <p class="text-[11px] text-zinc-400">Optimized multi-length bar layout view</p>
+            <p class="text-[11px] text-zinc-400" id="diagramSubtext">Optimized multi-length bar layout view</p>
           </div>
           <div class="flex items-center gap-2">
             <button onclick="window.print()" class="bg-allconRed hover:bg-allconRedHover text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow no-print">
@@ -295,6 +300,8 @@
       '#c2185b', '#512da8', '#00796b', '#afb42b', '#e64a19'
     ];
 
+    let currentMode = 'single'; // 'single' or 'multi'
+
     let availableStocks = [
       { length: 6000, active: true },
       { length: 9000, active: true },
@@ -302,10 +309,57 @@
       { length: 13000, active: false }
     ];
 
-    let initialCuts = [
+    let initialCutsSingle = [
       { length: 1450, qty: 4, label: 'Main Frame' },
       { length: 2300, qty: 3, label: 'Cross Beam' }
     ];
+
+    let initialCutsMulti = [
+      { material: '203x203x71 H-Beam', length: 1450, qty: 4, label: 'Main Frame' },
+      { material: '203x203x71 H-Beam', length: 2300, qty: 3, label: 'Cross Beam' },
+      { material: '203x133x25 I-Beam', length: 1800, qty: 6, label: 'Column' },
+      { material: '356x171x45 I-Beam', length: 3200, qty: 2, label: 'Rafter' }
+    ];
+
+    function switchMode(mode) {
+      currentMode = mode;
+      const btnSingle = document.getElementById('btnModeSingle');
+      const btnMulti = document.getElementById('btnModeMulti');
+
+      if (mode === 'single') {
+        btnSingle.className = 'flex-1 py-2 rounded-lg text-xs font-black uppercase transition bg-allconRed text-white shadow';
+        btnMulti.className = 'flex-1 py-2 rounded-md text-xs font-bold uppercase transition text-zinc-400 hover:text-white';
+        document.getElementById('diagramSubtext').innerText = 'Single Profile Nesting Layout';
+      } else {
+        btnMulti.className = 'flex-1 py-2 rounded-lg text-xs font-black uppercase transition bg-allconRed text-white shadow';
+        btnSingle.className = 'flex-1 py-2 rounded-md text-xs font-bold uppercase transition text-zinc-400 hover:text-white';
+        document.getElementById('diagramSubtext').innerText = 'Consolidated Multi-Material Profile Layout';
+      }
+
+      renderHeaders();
+      renderCutRows();
+      calculateNesting();
+    }
+
+    function renderHeaders() {
+      const container = document.getElementById('cutTableHeaders');
+      if (currentMode === 'single') {
+        container.innerHTML = `
+          <div class="col-span-5">Length (mm)</div>
+          <div class="col-span-3">Quantity</div>
+          <div class="col-span-3">Name / Tag</div>
+          <div class="col-span-1 text-right"></div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="col-span-4">Material / Profile</div>
+          <div class="col-span-3">Length (mm)</div>
+          <div class="col-span-2">Qty</div>
+          <div class="col-span-2">Tag</div>
+          <div class="col-span-1 text-right"></div>
+        `;
+      }
+    }
 
     function renderStockInputs() {
       const container = document.getElementById('stockLengthsContainer');
@@ -327,41 +381,78 @@
 
     function renderCutRows() {
       const container = document.getElementById('cutListRows');
-      container.innerHTML = initialCuts.map((cut, idx) => `
-        <div class="grid grid-cols-12 gap-2 items-center bg-[#181d24] p-2.5 rounded-lg border border-cardBorder">
-          <div class="col-span-5">
-            <input type="number" value="${cut.length}" placeholder="e.g. 1450" onchange="updateCutData(${idx}, 'length', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
+      const cutsList = currentMode === 'single' ? initialCutsSingle : initialCutsMulti;
+
+      if (currentMode === 'single') {
+        container.innerHTML = cutsList.map((cut, idx) => `
+          <div class="grid grid-cols-12 gap-2 items-center bg-[#181d24] p-2.5 rounded-lg border border-cardBorder">
+            <div class="col-span-5">
+              <input type="number" value="${cut.length}" placeholder="1450" onchange="updateCutData(${idx}, 'length', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
+            </div>
+            <div class="col-span-3">
+              <input type="number" value="${cut.qty}" placeholder="4" onchange="updateCutData(${idx}, 'qty', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
+            </div>
+            <div class="col-span-3">
+              <input type="text" value="${cut.label || ''}" placeholder="Main Frame" onchange="updateCutData(${idx}, 'label', this.value)" class="w-full p-2 rounded text-xs">
+            </div>
+            <div class="col-span-1 text-right">
+              <button onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1" title="Remove line">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
           </div>
-          <div class="col-span-3">
-            <input type="number" value="${cut.qty}" placeholder="e.g. 4" onchange="updateCutData(${idx}, 'qty', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
+        `).join('');
+      } else {
+        container.innerHTML = cutsList.map((cut, idx) => `
+          <div class="grid grid-cols-12 gap-1.5 items-center bg-[#181d24] p-2 rounded-lg border border-cardBorder">
+            <div class="col-span-4">
+              <input type="text" value="${cut.material || ''}" placeholder="e.g. 203x203x71" onchange="updateCutData(${idx}, 'material', this.value)" class="w-full p-1.5 rounded text-xs font-bold text-allconRed">
+            </div>
+            <div class="col-span-3">
+              <input type="number" value="${cut.length}" placeholder="1450" onchange="updateCutData(${idx}, 'length', this.value)" class="w-full p-1.5 rounded text-xs font-bold" min="1">
+            </div>
+            <div class="col-span-2">
+              <input type="number" value="${cut.qty}" placeholder="4" onchange="updateCutData(${idx}, 'qty', this.value)" class="w-full p-1.5 rounded text-xs font-bold" min="1">
+            </div>
+            <div class="col-span-2">
+              <input type="text" value="${cut.label || ''}" placeholder="Tag" onchange="updateCutData(${idx}, 'label', this.value)" class="w-full p-1.5 rounded text-xs">
+            </div>
+            <div class="col-span-1 text-right">
+              <button onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1" title="Remove line">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
           </div>
-          <div class="col-span-3">
-            <input type="text" value="${cut.label || ''}" placeholder="e.g. Main Frame" onchange="updateCutData(${idx}, 'label', this.value)" class="w-full p-2 rounded text-xs">
-          </div>
-          <div class="col-span-1 text-right">
-            <button onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1" title="Remove line">
-              <i class="fa-solid fa-trash-can text-xs"></i>
-            </button>
-          </div>
-        </div>
-      `).join('');
+        `).join('');
+      }
     }
 
     function addCutRow() {
-      initialCuts.push({ length: 1000, qty: 1, label: '' });
+      if (currentMode === 'single') {
+        initialCutsSingle.push({ length: 1000, qty: 1, label: '' });
+      } else {
+        const lastMat = initialCutsMulti.length > 0 ? initialCutsMulti[initialCutsMulti.length - 1].material : '203x203x71 H-Beam';
+        initialCutsMulti.push({ material: lastMat, length: 1000, qty: 1, label: '' });
+      }
       renderCutRows();
     }
 
     function removeCutRow(index) {
-      initialCuts.splice(index, 1);
+      if (currentMode === 'single') {
+        initialCutsSingle.splice(index, 1);
+      } else {
+        initialCutsMulti.splice(index, 1);
+      }
       renderCutRows();
+      calculateNesting();
     }
 
     function updateCutData(index, field, value) {
+      const cutsList = currentMode === 'single' ? initialCutsSingle : initialCutsMulti;
       if (field === 'length' || field === 'qty') {
-        initialCuts[index][field] = Math.max(0, parseFloat(value) || 0);
+        cutsList[index][field] = Math.max(0, parseFloat(value) || 0);
       } else {
-        initialCuts[index][field] = value;
+        cutsList[index][field] = value;
       }
     }
 
@@ -379,8 +470,13 @@
       const kerf = parseFloat(document.getElementById('kerfWidth').value) || 0;
       const maxAvailableStock = Math.max(...activeStockLengths);
 
-      let pieces = [];
-      initialCuts.forEach((item, groupIdx) => {
+      const cutsList = currentMode === 'single' ? initialCutsSingle : initialCutsMulti;
+
+      // Group cuts by Material (if in Multi-Material mode, else group under 'Single')
+      let materialGroups = {};
+
+      cutsList.forEach((item, groupIdx) => {
+        const matName = currentMode === 'single' ? 'General Material' : (item.material || 'Unspecified Material').trim();
         const length = parseFloat(item.length) || 0;
         const qty = parseInt(item.qty) || 0;
         const label = item.label || `Part ${groupIdx + 1}`;
@@ -388,98 +484,116 @@
 
         if (length > 0 && qty > 0) {
           if (length > maxAvailableStock) {
-            alert(`Cut length (${length}mm) exceeds maximum enabled stock bar length (${maxAvailableStock}mm).`);
+            alert(`Cut length (${length}mm) exceeds maximum enabled stock length (${maxAvailableStock}mm).`);
           }
+
+          if (!materialGroups[matName]) {
+            materialGroups[matName] = [];
+          }
+
           for (let i = 0; i < qty; i++) {
-            pieces.push({ length, label, color, id: `${groupIdx}_${i}` });
+            materialGroups[matName].push({ length, label, color, id: `${groupIdx}_${i}` });
           }
         }
       });
 
-      if (pieces.length === 0) {
+      if (Object.keys(materialGroups).length === 0) {
         alert('Please enter at least one valid cut length and quantity.');
         return;
       }
 
-      pieces.sort((a, b) => b.length - a.length);
+      let allGroupedResults = {};
 
-      let unassignedCuts = [...pieces];
-      let bars = [];
+      // Solve Best-Fit nesting independently per material type
+      Object.keys(materialGroups).forEach(matKey => {
+        let pieces = materialGroups[matKey];
+        pieces.sort((a, b) => b.length - a.length);
 
-      while (unassignedCuts.length > 0) {
-        let bestBarChoice = null;
+        let unassignedCuts = [...pieces];
+        let bars = [];
 
-        activeStockLengths.forEach(stockLen => {
-          let testBarCuts = [];
-          let currentRem = stockLen;
+        while (unassignedCuts.length > 0) {
+          let bestBarChoice = null;
 
-          for (let i = 0; i < unassignedCuts.length; i++) {
-            const cut = unassignedCuts[i];
-            const neededSpace = testBarCuts.length === 0 ? cut.length : (cut.length + kerf);
+          activeStockLengths.forEach(stockLen => {
+            let testBarCuts = [];
+            let currentRem = stockLen;
 
-            if (currentRem >= neededSpace) {
-              testBarCuts.push({ cut, index: i });
-              currentRem -= neededSpace;
+            for (let i = 0; i < unassignedCuts.length; i++) {
+              const cut = unassignedCuts[i];
+              const neededSpace = testBarCuts.length === 0 ? cut.length : (cut.length + kerf);
+
+              if (currentRem >= neededSpace) {
+                testBarCuts.push({ cut, index: i });
+                currentRem -= neededSpace;
+              }
             }
-          }
 
-          if (testBarCuts.length > 0) {
-            const usedLength = stockLen - currentRem;
-            const yieldPct = usedLength / stockLen;
+            if (testBarCuts.length > 0) {
+              const usedLength = stockLen - currentRem;
+              const yieldPct = usedLength / stockLen;
 
-            if (!bestBarChoice || yieldPct > bestBarChoice.yieldPct || (yieldPct === bestBarChoice.yieldPct && stockLen < bestBarChoice.stockLength)) {
-              bestBarChoice = {
-                stockLength: stockLen,
-                cuts: testBarCuts.map(tc => tc.cut),
-                indicesToRemove: testBarCuts.map(tc => tc.index),
-                remaining: currentRem,
-                yieldPct: yieldPct
-              };
+              if (!bestBarChoice || yieldPct > bestBarChoice.yieldPct || (yieldPct === bestBarChoice.yieldPct && stockLen < bestBarChoice.stockLength)) {
+                bestBarChoice = {
+                  stockLength: stockLen,
+                  cuts: testBarCuts.map(tc => tc.cut),
+                  indicesToRemove: testBarCuts.map(tc => tc.index),
+                  remaining: currentRem,
+                  yieldPct: yieldPct
+                };
+              }
             }
+          });
+
+          if (bestBarChoice) {
+            bars.push({
+              id: bars.length + 1,
+              stockLength: bestBarChoice.stockLength,
+              cuts: bestBarChoice.cuts,
+              remaining: bestBarChoice.remaining
+            });
+
+            bestBarChoice.indicesToRemove.sort((a, b) => b - a).forEach(idx => {
+              unassignedCuts.splice(idx, 1);
+            });
+          } else {
+            break;
           }
         });
 
-        if (bestBarChoice) {
-          bars.push({
-            id: bars.length + 1,
-            stockLength: bestBarChoice.stockLength,
-            cuts: bestBarChoice.cuts,
-            remaining: bestBarChoice.remaining
-          });
+        allGroupedResults[matKey] = bars;
+      });
 
-          bestBarChoice.indicesToRemove.sort((a, b) => b - a).forEach(idx => {
-            unassignedCuts.splice(idx, 1);
-          });
-        } else {
-          break;
-        }
-      }
-
-      renderResults(bars, activeStockLengths, kerf);
+      renderResults(allGroupedResults, kerf);
     }
 
-    function renderResults(bars, activeStockLengths, kerf) {
-      const totalCutLength = bars.reduce((acc, bar) => {
-        return acc + bar.cuts.reduce((sum, cut) => sum + cut.length, 0);
-      }, 0);
+    function renderResults(allGroupedResults, kerf) {
+      let grandTotalCutLength = 0;
+      let grandTotalPiecesCount = 0;
+      let grandTotalStockLength = 0;
+      let totalStockBarsCount = 0;
 
-      const totalPiecesCount = bars.reduce((acc, bar) => acc + bar.cuts.length, 0);
-      const totalStockLength = bars.reduce((acc, bar) => acc + bar.stockLength, 0);
-      const totalOffcut = totalStockLength - totalCutLength;
-      const yieldPercent = totalStockLength > 0 ? ((totalCutLength / totalStockLength) * 100).toFixed(1) : 0;
-      
-      const totalKerfLoss = bars.reduce((acc, bar) => {
-        return acc + (bar.cuts.length > 1 ? (bar.cuts.length - 1) * kerf : 0);
-      }, 0);
+      Object.keys(allGroupedResults).forEach(mat => {
+        const bars = allGroupedResults[mat];
+        totalStockBarsCount += bars.length;
+        bars.forEach(bar => {
+          grandTotalStockLength += bar.stockLength;
+          grandTotalPiecesCount += bar.cuts.length;
+          grandTotalCutLength += bar.cuts.reduce((sum, c) => sum + c.length, 0);
+        });
+      });
 
-      document.getElementById('resStockBars').innerText = bars.length;
-      document.getElementById('resStockLengthLabel').innerText = `${bars.length} bar(s) selected`;
+      const grandTotalOffcut = grandTotalStockLength - grandTotalCutLength;
+      const yieldPercent = grandTotalStockLength > 0 ? ((grandTotalCutLength / grandTotalStockLength) * 100).toFixed(1) : 0;
 
-      document.getElementById('resTotalCutLength').innerText = `${totalCutLength.toLocaleString()} mm`;
-      document.getElementById('resTotalPieces').innerText = `${totalPiecesCount} pieces total`;
+      document.getElementById('resStockBars').innerText = totalStockBarsCount;
+      document.getElementById('resStockLengthLabel').innerText = `${totalStockBarsCount} bar(s) across ${Object.keys(allGroupedResults).length} profile(s)`;
 
-      document.getElementById('resTotalOffcut').innerText = `${totalOffcut.toLocaleString()} mm`;
-      document.getElementById('resKerfLoss').innerText = `${totalKerfLoss}mm blade loss`;
+      document.getElementById('resTotalCutLength').innerText = `${grandTotalCutLength.toLocaleString()} mm`;
+      document.getElementById('resTotalPieces').innerText = `${grandTotalPiecesCount} pieces total`;
+
+      document.getElementById('resTotalOffcut').innerText = `${grandTotalOffcut.toLocaleString()} mm`;
+      document.getElementById('resKerfLoss').innerText = `${kerf}mm blade loss`;
 
       document.getElementById('resMaterialYield').innerText = `${yieldPercent}%`;
       
@@ -495,45 +609,70 @@
         efficiencyEl.className = 'text-[10px] text-red-400 mt-1 font-bold';
       }
 
-      document.getElementById('diagramHeaderCount').innerText = `${bars.length} Stock Bar${bars.length === 1 ? '' : 's'}`;
+      document.getElementById('diagramHeaderCount').innerText = `${totalStockBarsCount} Total Stock Bars`;
 
       const diagramContainer = document.getElementById('nestingDiagramContainer');
-      diagramContainer.innerHTML = bars.map(bar => {
-        const offcutPercent = ((bar.remaining / bar.stockLength) * 100).toFixed(1);
+      let combinedDiagramHtml = '';
 
-        const cutsHtml = bar.cuts.map(cut => {
-          const cutPct = ((cut.length / bar.stockLength) * 100).toFixed(2);
+      Object.keys(allGroupedResults).forEach(matName => {
+        const bars = allGroupedResults[matName];
+
+        const matSubtotalCut = bars.reduce((acc, b) => acc + b.cuts.reduce((s, c) => s + c.length, 0), 0);
+        const matSubtotalStock = bars.reduce((acc, b) => acc + b.stockLength, 0);
+        const matSubtotalOffcut = matSubtotalStock - matSubtotalCut;
+
+        let categoryHeaderHtml = '';
+        if (currentMode === 'multi') {
+          categoryHeaderHtml = `
+            <div class="bg-[#1f2630] border-l-4 border-allconRed p-2.5 rounded-r-lg mb-3 mt-4 flex justify-between items-center">
+              <span class="font-black text-sm text-white uppercase tracking-wider">${matName}</span>
+              <span class="text-xs font-bold text-zinc-300">${bars.length} Bar(s) Needed | Total Offcut: <span class="text-red-400">${matSubtotalOffcut}mm</span></span>
+            </div>
+          `;
+        }
+
+        const barsHtml = bars.map(bar => {
+          const offcutPercent = ((bar.remaining / bar.stockLength) * 100).toFixed(1);
+
+          const cutsHtml = bar.cuts.map(cut => {
+            const cutPct = ((cut.length / bar.stockLength) * 100).toFixed(2);
+            return `
+              <div class="cut-segment" style="width: ${cutPct}%; background-color: ${cut.color};" title="${cut.label}: ${cut.length}mm">
+                <span style="font-weight: 800; font-size: 11px;">${cut.length}mm</span>
+                ${cut.label ? `<span style="font-weight: 600; opacity: 0.9; font-size: 9px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${cut.label}</span>` : ''}
+              </div>
+            `;
+          }).join('');
+
+          const offcutHtml = bar.remaining > 0 ? `
+            <div class="offcut-segment" style="width: ${offcutPercent}%;" title="Scrap / Offcut: ${bar.remaining}mm">
+              <span>${bar.remaining}mm</span>
+            </div>
+          ` : '';
+
           return `
-            <div class="cut-segment" style="width: ${cutPct}%; background-color: ${cut.color};" title="${cut.label}: ${cut.length}mm">
-              <span style="font-weight: 800; font-size: 11px;">${cut.length}mm</span>
-              ${cut.label ? `<span style="font-weight: 600; opacity: 0.9; font-size: 9px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${cut.label}</span>` : ''}
+            <div class="bg-[#181d24] border border-cardBorder rounded-xl p-3 mb-3">
+              <div class="flex justify-between items-center text-xs font-bold mb-2">
+                <span class="text-white">${currentMode === 'multi' ? matName + ' - ' : ''}Bar #${bar.id} <span class="text-allconRed ml-1 font-black">(${bar.stockLength}mm Stock)</span></span>
+                <span class="text-zinc-400">Used: ${(bar.stockLength - bar.remaining)}mm / Offcut: <span class="text-red-400">${bar.remaining}mm</span></span>
+              </div>
+              <div class="bar-visual-container">
+                ${cutsHtml}
+                ${offcutHtml}
+              </div>
             </div>
           `;
         }).join('');
 
-        const offcutHtml = bar.remaining > 0 ? `
-          <div class="offcut-segment" style="width: ${offcutPercent}%;" title="Scrap / Offcut: ${bar.remaining}mm">
-            <span>${bar.remaining}mm</span>
-          </div>
-        ` : '';
+        combinedDiagramHtml += categoryHeaderHtml + barsHtml;
+      });
 
-        return `
-          <div class="bg-[#181d24] border border-cardBorder rounded-xl p-3">
-            <div class="flex justify-between items-center text-xs font-bold mb-2">
-              <span class="text-white">Stock Bar #${bar.id} <span class="text-allconRed ml-1 font-black">(${bar.stockLength}mm Stock)</span></span>
-              <span class="text-zinc-400">Used: ${(bar.stockLength - bar.remaining)}mm / Offcut: <span class="text-red-400">${bar.remaining}mm</span></span>
-            </div>
-            <div class="bar-visual-container">
-              ${cutsHtml}
-              ${offcutHtml}
-            </div>
-          </div>
-        `;
-      }).join('');
+      diagramContainer.innerHTML = combinedDiagramHtml;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       renderStockInputs();
+      renderHeaders();
       renderCutRows();
       calculateNesting();
     });
