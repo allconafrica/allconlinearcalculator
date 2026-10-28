@@ -90,14 +90,31 @@
       line-height: 1.1;
     }
 
-    /* INK-FRIENDLY PRINT / PDF EXPORT OVERRIDES */
+    /* PRINT / PDF EXPORT STYLING (Ink-friendly white background & hidden input panels) */
     @media print {
       body {
         background-color: #ffffff !important;
         color: #111111 !important;
       }
-      header, footer, button, .no-print {
+      header {
+        background-color: #ffffff !important;
+        border-bottom: 2px solid #e53935 !important;
+        box-shadow: none !important;
+      }
+      header h1 {
+        color: #111111 !important;
+      }
+      header p {
+        color: #555555 !important;
+      }
+      /* Hide input parameters and cut list form on PDF export */
+      .input-sidebar-column, button, .no-print {
         display: none !important;
+      }
+      /* Make results column take full width */
+      .results-main-column {
+        grid-column: span 12 !important;
+        width: 100% !important;
       }
       .bg-cardBg, .bg-\[\#181d24\], .bg-\[\#090a0c\] {
         background-color: #ffffff !important;
@@ -144,7 +161,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 no-print">
         <a href="https://allconafrica.github.io/allcondashboard/" class="bg-[#1f2630] hover:bg-allconRed text-white text-xs font-bold px-4 py-2.5 rounded-lg border border-cardBorder transition flex items-center gap-2">
           <i class="fa-solid fa-house text-xs"></i> Back to Dashboard
         </a>
@@ -155,8 +172,8 @@
   <!-- MAIN CONTAINER -->
   <main class="max-w-7xl mx-auto px-6 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-    <!-- LEFT COLUMN: INPUT PARAMETERS & CUT LIST -->
-    <div class="lg:col-span-5 space-y-6">
+    <!-- LEFT COLUMN: INPUT PARAMETERS & CUT LIST (Hidden on Print/PDF) -->
+    <div class="lg:col-span-5 space-y-6 input-sidebar-column">
 
       <!-- CONFIGURATION CARD -->
       <div class="bg-cardBg border border-cardBorder rounded-xl p-5 shadow-xl space-y-4">
@@ -210,7 +227,7 @@
     </div>
 
     <!-- RIGHT COLUMN: RESULTS & VISUAL NESTING LAYOUT -->
-    <div class="lg:col-span-7 space-y-6">
+    <div class="lg:col-span-7 space-y-6 results-main-column">
 
       <!-- SUMMARY METRICS -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -249,7 +266,7 @@
             <p class="text-[11px] text-zinc-400">Optimized multi-length bar layout view</p>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="window.print()" class="bg-allconRed hover:bg-allconRedHover text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
+            <button onclick="window.print()" class="bg-allconRed hover:bg-allconRedHover text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow no-print">
               <i class="fa-solid fa-file-pdf"></i> Download PDF
             </button>
             <span class="text-xs text-zinc-400 font-mono" id="diagramHeaderCount">0 Stock Bars</span>
@@ -278,7 +295,6 @@
       '#c2185b', '#512da8', '#00796b', '#afb42b', '#e64a19'
     ];
 
-    // Default Multi-Stock Length Options
     let availableStocks = [
       { length: 6000, active: true },
       { length: 9000, active: true },
@@ -385,17 +401,14 @@
         return;
       }
 
-      // Sort cuts descending
       pieces.sort((a, b) => b.length - a.length);
 
       let unassignedCuts = [...pieces];
       let bars = [];
 
-      // Multi-stock best-fit optimizer
       while (unassignedCuts.length > 0) {
         let bestBarChoice = null;
 
-        // Test each active stock length to see which yields the highest efficiency for the remaining cuts
         activeStockLengths.forEach(stockLen => {
           let testBarCuts = [];
           let currentRem = stockLen;
@@ -434,12 +447,10 @@
             remaining: bestBarChoice.remaining
           });
 
-          // Remove packed cuts
           bestBarChoice.indicesToRemove.sort((a, b) => b - a).forEach(idx => {
             unassignedCuts.splice(idx, 1);
           });
         } else {
-          // Fallback if cut exceeds any stock
           break;
         }
       }
