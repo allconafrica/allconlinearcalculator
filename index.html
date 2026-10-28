@@ -10,8 +10,6 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- HTML2PDF LIBRARY FOR PDF DOWNLOAD -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -87,17 +85,6 @@
       overflow: hidden;
       white-space: nowrap;
     }
-
-    /* Print / PDF generation styles */
-    .pdf-render-mode {
-      background-color: #0d0f12 !important;
-      color: #f0f3f6 !important;
-      padding: 20px !important;
-    }
-    .pdf-render-mode #nestingDiagramContainer {
-      max-height: none !important;
-      overflow: visible !important;
-    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between">
@@ -113,7 +100,7 @@
           <h1 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
             Linear Cutting & Nesting Estimator
           </h1>
-          <p class="text-xs text-zinc-400">1D Material Cutting & Stock Bar Optimization Tool</p>
+          <p class="text-xs text-zinc-400">Multi-Length Stock Bar Optimization & 1D Cutting Tool</p>
         </div>
       </div>
 
@@ -132,20 +119,22 @@
     <div class="lg:col-span-5 space-y-6">
 
       <!-- CONFIGURATION CARD -->
-      <div class="bg-cardBg border border-cardBorder rounded-xl p-5 shadow-xl">
-        <h2 class="text-sm font-black text-allconRed uppercase tracking-wider mb-4 flex items-center gap-2">
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-5 shadow-xl space-y-4">
+        <h2 class="text-sm font-black text-allconRed uppercase tracking-wider flex items-center gap-2">
           <i class="fa-solid fa-sliders"></i> 1. Stock & Blade Setup
         </h2>
 
-        <div class="grid grid-cols-2 gap-4 text-xs font-semibold">
-          <div>
-            <label class="block text-zinc-400 mb-1.5 uppercase">Stock Bar Length (mm)</label>
-            <input type="number" id="stockLength" value="6000" step="100" class="w-full p-2.5 rounded-lg border font-bold text-sm">
+        <div>
+          <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Available Stock Lengths (mm)</label>
+          <div class="grid grid-cols-3 gap-2" id="stockLengthsContainer">
+            <!-- Dynamic stock inputs -->
           </div>
-          <div>
-            <label class="block text-zinc-400 mb-1.5 uppercase">Blade / Kerf Width (mm)</label>
-            <input type="number" id="kerfWidth" value="3" step="0.5" class="w-full p-2.5 rounded-lg border font-bold text-sm">
-          </div>
+          <p class="text-[11px] text-zinc-500 mt-1.5">Enter available stock sizes (e.g. 6M, 9M, 11M, 13M). Check boxes to include in solver.</p>
+        </div>
+
+        <div class="pt-2 border-t border-cardBorder">
+          <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Blade / Kerf Width (mm)</label>
+          <input type="number" id="kerfWidth" value="3" step="0.5" min="0" class="w-full p-2.5 rounded-lg border font-bold text-sm">
         </div>
       </div>
 
@@ -169,36 +158,26 @@
         </div>
 
         <!-- CUT LIST INPUT TABLE -->
-        <div class="space-y-2.5" id="cutListRows">
+        <div class="space-y-2.5 max-h-[300px] overflow-y-auto pr-1" id="cutListRows">
           <!-- Dynamic Input Rows inserted here -->
         </div>
 
         <button onclick="calculateNesting()" class="w-full mt-6 bg-allconRed hover:bg-allconRedHover text-white font-black py-3 rounded-lg text-sm shadow-lg transition uppercase tracking-wider flex items-center justify-center gap-2">
-          <i class="fa-solid fa-calculator"></i> Calculate Nesting & Stock Required
+          <i class="fa-solid fa-calculator"></i> Calculate Multi-Stock Nesting
         </button>
       </div>
 
     </div>
 
     <!-- RIGHT COLUMN: RESULTS & VISUAL NESTING LAYOUT -->
-    <div class="lg:col-span-7 space-y-6" id="nestingPdfArea">
-
-      <!-- DOWNLOAD BUTTON BAR -->
-      <div class="flex justify-between items-center bg-cardBg border border-cardBorder p-3 rounded-xl shadow-lg">
-        <span class="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-chart-pie text-allconRed"></i> Nesting Results Overview
-        </span>
-        <button onclick="downloadNestingPDF()" class="bg-allconRed hover:bg-allconRedHover text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-2 shadow">
-          <i class="fa-solid fa-file-pdf"></i> Download PDF
-        </button>
-      </div>
+    <div class="lg:col-span-7 space-y-6">
 
       <!-- SUMMARY METRICS -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="bg-cardBg border border-cardBorder p-4 rounded-xl text-center">
           <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Stock Bars Required</div>
           <div class="text-3xl font-black text-white" id="resStockBars">0</div>
-          <div class="text-[10px] text-zinc-400 mt-1" id="resStockLengthLabel">6000mm length</div>
+          <div class="text-[10px] text-zinc-400 mt-1" id="resStockLengthLabel">Mixed stock sizes</div>
         </div>
 
         <div class="bg-cardBg border border-cardBorder p-4 rounded-xl text-center">
@@ -222,16 +201,24 @@
 
       <!-- VISUAL BAR NESTING LAYOUT -->
       <div class="bg-cardBg border border-cardBorder rounded-xl p-5 shadow-xl">
-        <div class="flex justify-between items-center mb-4 border-b border-cardBorder pb-3">
-          <h2 class="text-sm font-black text-allconRed uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-layer-group"></i> Cutting Diagram & Layout
-          </h2>
-          <span class="text-xs text-zinc-400 font-mono" id="diagramHeaderCount">0 Stock Bars</span>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 border-b border-cardBorder pb-3">
+          <div>
+            <h2 class="text-sm font-black text-allconRed uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-layer-group"></i> Cutting Diagram & Layout
+            </h2>
+            <p class="text-[11px] text-zinc-400">Optimized multi-length bar layout view</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="window.print()" class="bg-allconRed hover:bg-allconRedHover text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
+              <i class="fa-solid fa-file-pdf"></i> Download PDF
+            </button>
+            <span class="text-xs text-zinc-400 font-mono" id="diagramHeaderCount">0 Stock Bars</span>
+          </div>
         </div>
 
         <div id="nestingDiagramContainer" class="space-y-4 max-h-[500px] overflow-y-auto pr-1">
           <div class="text-center py-12 text-zinc-500 text-xs">
-            Enter your required cut lengths on the left and click <strong>Calculate</strong> to display the optimized layout.
+            Enter your stock options & cut lengths on the left and click <strong>Calculate</strong> to display the optimized layout.
           </div>
         </div>
       </div>
@@ -246,16 +233,41 @@
   </footer>
 
   <script>
-    // Distinct color palette for cut pieces in visual diagram
     const cutColors = [
       '#0288d1', '#388e3c', '#f57c00', '#7b1fa2', '#009688', 
       '#c2185b', '#512da8', '#00796b', '#afb42b', '#e64a19'
     ];
 
-    // Single sample cut line
-    let initialCuts = [
-      { length: 1450, qty: 4, label: 'Main Frame' }
+    // Default Multi-Stock Length Options
+    let availableStocks = [
+      { length: 6000, active: true },
+      { length: 9000, active: true },
+      { length: 11000, active: true },
+      { length: 13000, active: false }
     ];
+
+    let initialCuts = [
+      { length: 1450, qty: 4, label: 'Main Frame' },
+      { length: 2300, qty: 3, label: 'Cross Beam' }
+    ];
+
+    function renderStockInputs() {
+      const container = document.getElementById('stockLengthsContainer');
+      container.innerHTML = availableStocks.map((stock, idx) => `
+        <div class="bg-[#181d24] p-2 rounded-lg border border-cardBorder flex items-center justify-between gap-1.5">
+          <input type="checkbox" ${stock.active ? 'checked' : ''} onchange="toggleStock(${idx}, this.checked)" class="accent-allconRed cursor-pointer">
+          <input type="number" value="${stock.length}" step="500" min="500" onchange="updateStockLength(${idx}, this.value)" class="w-full p-1 text-center font-bold text-xs rounded border">
+        </div>
+      `).join('');
+    }
+
+    function toggleStock(index, active) {
+      availableStocks[index].active = active;
+    }
+
+    function updateStockLength(index, val) {
+      availableStocks[index].length = Math.max(500, parseFloat(val) || 0);
+    }
 
     function renderCutRows() {
       const container = document.getElementById('cutListRows');
@@ -298,8 +310,18 @@
     }
 
     function calculateNesting() {
-      const stockLength = parseFloat(document.getElementById('stockLength').value) || 6000;
+      const activeStockLengths = availableStocks
+        .filter(s => s.active && s.length > 0)
+        .map(s => s.length)
+        .sort((a, b) => b - a);
+
+      if (activeStockLengths.length === 0) {
+        alert('Please enable at least one stock bar length.');
+        return;
+      }
+
       const kerf = parseFloat(document.getElementById('kerfWidth').value) || 0;
+      const maxAvailableStock = Math.max(...activeStockLengths);
 
       let pieces = [];
       initialCuts.forEach((item, groupIdx) => {
@@ -309,8 +331,8 @@
         const color = cutColors[groupIdx % cutColors.length];
 
         if (length > 0 && qty > 0) {
-          if (length > stockLength) {
-            alert(`Cut length (${length}mm) exceeds stock bar length (${stockLength}mm).`);
+          if (length > maxAvailableStock) {
+            alert(`Cut length (${length}mm) exceeds maximum enabled stock bar length (${maxAvailableStock}mm).`);
           }
           for (let i = 0; i < qty; i++) {
             pieces.push({ length, label, color, id: `${groupIdx}_${i}` });
@@ -323,44 +345,75 @@
         return;
       }
 
+      // Sort cuts descending
       pieces.sort((a, b) => b.length - a.length);
 
+      let unassignedCuts = [...pieces];
       let bars = [];
 
-      pieces.forEach(piece => {
-        let placed = false;
+      // Multi-stock best-fit optimizer
+      while (unassignedCuts.length > 0) {
+        let bestBarChoice = null;
 
-        for (let bar of bars) {
-          const neededSpace = bar.cuts.length === 0 ? piece.length : (piece.length + kerf);
-          if (bar.remaining >= neededSpace) {
-            bar.cuts.push(piece);
-            bar.used += neededSpace;
-            bar.remaining -= neededSpace;
-            placed = true;
-            break;
+        // Test each active stock length to see which yields the highest efficiency for the remaining cuts
+        activeStockLengths.forEach(stockLen => {
+          let testBarCuts = [];
+          let currentRem = stockLen;
+
+          for (let i = 0; i < unassignedCuts.length; i++) {
+            const cut = unassignedCuts[i];
+            const neededSpace = testBarCuts.length === 0 ? cut.length : (cut.length + kerf);
+
+            if (currentRem >= neededSpace) {
+              testBarCuts.push({ cut, index: i });
+              currentRem -= neededSpace;
+            }
           }
-        }
 
-        if (!placed) {
+          if (testBarCuts.length > 0) {
+            const usedLength = stockLen - currentRem;
+            const yieldPct = usedLength / stockLen;
+
+            if (!bestBarChoice || yieldPct > bestBarChoice.yieldPct || (yieldPct === bestBarChoice.yieldPct && stockLen < bestBarChoice.stockLength)) {
+              bestBarChoice = {
+                stockLength: stockLen,
+                cuts: testBarCuts.map(tc => tc.cut),
+                indicesToRemove: testBarCuts.map(tc => tc.index),
+                remaining: currentRem,
+                yieldPct: yieldPct
+              };
+            }
+          }
+        });
+
+        if (bestBarChoice) {
           bars.push({
             id: bars.length + 1,
-            cuts: [piece],
-            used: piece.length,
-            remaining: stockLength - piece.length
+            stockLength: bestBarChoice.stockLength,
+            cuts: bestBarChoice.cuts,
+            remaining: bestBarChoice.remaining
           });
-        }
-      });
 
-      renderResults(bars, stockLength, kerf);
+          // Remove packed cuts
+          bestBarChoice.indicesToRemove.sort((a, b) => b - a).forEach(idx => {
+            unassignedCuts.splice(idx, 1);
+          });
+        } else {
+          // Fallback if cut exceeds any stock
+          break;
+        }
+      }
+
+      renderResults(bars, activeStockLengths, kerf);
     }
 
-    function renderResults(bars, stockLength, kerf) {
+    function renderResults(bars, activeStockLengths, kerf) {
       const totalCutLength = bars.reduce((acc, bar) => {
         return acc + bar.cuts.reduce((sum, cut) => sum + cut.length, 0);
       }, 0);
 
       const totalPiecesCount = bars.reduce((acc, bar) => acc + bar.cuts.length, 0);
-      const totalStockLength = bars.length * stockLength;
+      const totalStockLength = bars.reduce((acc, bar) => acc + bar.stockLength, 0);
       const totalOffcut = totalStockLength - totalCutLength;
       const yieldPercent = totalStockLength > 0 ? ((totalCutLength / totalStockLength) * 100).toFixed(1) : 0;
       
@@ -369,7 +422,7 @@
       }, 0);
 
       document.getElementById('resStockBars').innerText = bars.length;
-      document.getElementById('resStockLengthLabel').innerText = `${stockLength}mm stock length`;
+      document.getElementById('resStockLengthLabel').innerText = `${bars.length} bar(s) selected`;
 
       document.getElementById('resTotalCutLength').innerText = `${totalCutLength.toLocaleString()} mm`;
       document.getElementById('resTotalPieces').innerText = `${totalPiecesCount} pieces total`;
@@ -395,10 +448,10 @@
 
       const diagramContainer = document.getElementById('nestingDiagramContainer');
       diagramContainer.innerHTML = bars.map(bar => {
-        const offcutPercent = ((bar.remaining / stockLength) * 100).toFixed(1);
+        const offcutPercent = ((bar.remaining / bar.stockLength) * 100).toFixed(1);
 
         const cutsHtml = bar.cuts.map(cut => {
-          const cutPct = ((cut.length / stockLength) * 100).toFixed(2);
+          const cutPct = ((cut.length / bar.stockLength) * 100).toFixed(2);
           return `
             <div class="cut-segment" style="width: ${cutPct}%; background-color: ${cut.color};" title="${cut.label}: ${cut.length}mm">
               ${cut.length}mm ${cut.label ? `(${cut.label})` : ''}
@@ -415,8 +468,8 @@
         return `
           <div class="bg-[#181d24] border border-cardBorder rounded-xl p-3">
             <div class="flex justify-between items-center text-xs font-bold mb-2">
-              <span class="text-white">Stock Bar #${bar.id}</span>
-              <span class="text-zinc-400">Used: ${(stockLength - bar.remaining)}mm / Offcut: <span class="text-red-400">${bar.remaining}mm</span></span>
+              <span class="text-white">Stock Bar #${bar.id} <span class="text-allconRed ml-1 font-black">(${bar.stockLength}mm Stock)</span></span>
+              <span class="text-zinc-400">Used: ${(bar.stockLength - bar.remaining)}mm / Offcut: <span class="text-red-400">${bar.remaining}mm</span></span>
             </div>
             <div class="bar-visual-container">
               ${cutsHtml}
@@ -427,32 +480,8 @@
       }).join('');
     }
 
-    function downloadNestingPDF() {
-      const element = document.getElementById('nestingPdfArea');
-      const container = document.getElementById('nestingDiagramContainer');
-
-      // Expand container so all bars print on PDF without scrollbars
-      const originalMaxHeight = container.style.maxHeight;
-      const originalOverflow = container.style.overflowY;
-      container.style.maxHeight = 'none';
-      container.style.overflowY = 'visible';
-
-      const opt = {
-        margin:       [0.3, 0.3, 0.3, 0.3],
-        filename:     `ALLCON_Nesting_Layout_${new Date().toISOString().slice(0,10)}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, backgroundColor: '#0d0f12', useCORS: true },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
-      };
-
-      html2pdf().set(opt).from(element).save().then(() => {
-        // Revert styles after PDF generation
-        container.style.maxHeight = originalMaxHeight;
-        container.style.overflowY = originalOverflow;
-      });
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
+      renderStockInputs();
       renderCutRows();
       calculateNesting();
     });
