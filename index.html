@@ -32,19 +32,16 @@
       color: #f0f3f6;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
-
     input, select, textarea {
       background-color: #090a0c !important;
       color: #ffffff !important;
       border-color: #232931 !important;
     }
-
     input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: #e53935 !important;
       box-shadow: 0 0 0 1px #e53935;
     }
-
     .bar-visual-container {
       background-color: #090a0c;
       border: 1px solid #232931;
@@ -55,7 +52,6 @@
       height: 48px;
       width: 100%;
     }
-
     .cut-segment {
       height: 100%;
       display: flex;
@@ -71,9 +67,7 @@
       text-align: center;
       line-height: 1.1;
       word-break: break-word;
-      transition: all 0.2s;
     }
-
     .offcut-segment {
       height: 100%;
       background-color: rgba(229, 57, 53, 0.15);
@@ -87,58 +81,16 @@
       overflow: hidden;
       padding: 0 2px;
       text-align: center;
-      line-height: 1.1;
     }
-
-    /* PRINT / PDF EXPORT STYLING */
     @media print {
-      body {
-        background-color: #ffffff !important;
-        color: #111111 !important;
-      }
-      header {
-        background-color: #ffffff !important;
-        border-bottom: 2px solid #e53935 !important;
-        box-shadow: none !important;
-      }
-      header h1 {
-        color: #111111 !important;
-      }
-      header p {
-        color: #555555 !important;
-      }
-      .input-sidebar-column, button, .no-print, .mode-toggle-banner {
-        display: none !important;
-      }
-      .results-main-column {
-        grid-column: span 12 !important;
-        width: 100% !important;
-      }
-      .bg-cardBg, .bg-\[\#181d24\], .bg-\[\#090a0c\], .bg-\[\#1f2630\] {
-        background-color: #ffffff !important;
-        border-color: #d1d5db !important;
-        box-shadow: none !important;
-        color: #111111 !important;
-      }
-      .text-white, .text-zinc-400, .text-zinc-500, .text-zinc-300 {
-        color: #111111 !important;
-      }
-      .bar-visual-container {
-        background-color: #f3f4f6 !important;
-        border: 1px solid #9ca3af !important;
-      }
-      .cut-segment {
-        border-right: 1px solid #ffffff !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      .offcut-segment {
-        background-color: #fee2e2 !important;
-        border: 1px dashed #dc2626 !important;
-        color: #991b1b !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
+      body { background-color: #ffffff !important; color: #111111 !important; }
+      header { background-color: #ffffff !important; border-bottom: 2px solid #e53935 !important; }
+      header h1 { color: #111111 !important; }
+      .input-sidebar-column, button, .no-print, .mode-toggle-banner { display: none !important; }
+      .results-main-column { grid-column: span 12 !important; width: 100% !important; }
+      .bg-cardBg, .bg-\[\#181d24\], .bg-\[\#090a0c\] { background-color: #ffffff !important; border-color: #d1d5db !important; color: #111111 !important; }
+      .text-white, .text-zinc-400 { color: #111111 !important; }
+      .bar-visual-container { background-color: #f3f4f6 !important; border: 1px solid #9ca3af !important; }
     }
   </style>
 </head>
@@ -152,13 +104,10 @@
           <img src="./ALLCON-Logo.jpg" alt="ALLCON Logo" class="h-10 w-auto rounded object-contain" onerror="this.onerror=null; this.outerHTML='<div class=\'bg-allconRed text-white font-black px-3 py-1 rounded text-xl tracking-wider\'>ALLCON</div>';">
         </a>
         <div>
-          <h1 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
-            Linear Cutting & Nesting Estimator
-          </h1>
+          <h1 class="text-xl font-black text-white tracking-tight flex items-center gap-2">Linear Cutting & Nesting Estimator</h1>
           <p class="text-xs text-zinc-400">Multi-Length Stock Bar Optimization & 1D Cutting Tool</p>
         </div>
       </div>
-
       <div class="flex items-center gap-3 no-print">
         <a href="https://allconafrica.github.io/allcondashboard/" class="bg-[#1f2630] hover:bg-allconRed text-white text-xs font-bold px-4 py-2.5 rounded-lg border border-cardBorder transition flex items-center gap-2">
           <i class="fa-solid fa-house text-xs"></i> Back to Dashboard
@@ -170,10 +119,10 @@
   <!-- MAIN CONTAINER -->
   <main class="max-w-7xl mx-auto px-6 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-    <!-- LEFT COLUMN: INPUT PARAMETERS & CUT LIST -->
+    <!-- LEFT COLUMN -->
     <div class="lg:col-span-5 space-y-6 input-sidebar-column">
 
-      <!-- MODE TOGGLE BANNER -->
+      <!-- MODE TOGGLE -->
       <div class="bg-cardBg border border-cardBorder rounded-xl p-2 shadow-xl flex items-center justify-between gap-2 mode-toggle-banner">
         <button id="btnModeSingle" type="button" onclick="switchMode('single')" class="flex-1 py-2 rounded-lg text-xs font-black uppercase transition bg-allconRed text-white shadow">
           <i class="fa-solid fa-cube mr-1.5"></i> Single Profile Mode
@@ -188,15 +137,10 @@
         <h2 class="text-sm font-black text-allconRed uppercase tracking-wider flex items-center gap-2">
           <i class="fa-solid fa-sliders"></i> 1. Stock & Blade Setup
         </h2>
-
         <div>
           <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Available Stock Lengths (mm)</label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="stockLengthsContainer">
-            <!-- Dynamic stock inputs rendered via JS -->
-          </div>
-          <p class="text-[11px] text-zinc-500 mt-1.5">Check boxes to include in solver.</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="stockLengthsContainer"></div>
         </div>
-
         <div class="pt-2 border-t border-cardBorder">
           <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Blade / Kerf Width (mm)</label>
           <input type="number" id="kerfWidth" value="3" step="0.5" min="0" class="w-full p-2.5 rounded-lg border font-bold text-sm">
@@ -214,15 +158,8 @@
           </button>
         </div>
 
-        <!-- DYNAMIC COLUMN HEADERS DEPENDING ON MODE -->
-        <div id="cutTableHeaders" class="grid grid-cols-12 gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-wider px-1 mb-2">
-          <!-- Rendered via Javascript -->
-        </div>
-
-        <!-- CUT LIST INPUT TABLE -->
-        <div class="space-y-2.5 max-h-[320px] overflow-y-auto pr-1" id="cutListRows">
-          <!-- Dynamic Input Rows inserted here -->
-        </div>
+        <div id="cutTableHeaders" class="grid grid-cols-12 gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-wider px-1 mb-2"></div>
+        <div class="space-y-2.5 max-h-[320px] overflow-y-auto pr-1" id="cutListRows"></div>
 
         <button type="button" onclick="calculateNesting()" class="w-full mt-6 bg-allconRed hover:bg-allconRedHover text-white font-black py-3 rounded-lg text-sm shadow-lg transition uppercase tracking-wider flex items-center justify-center gap-2">
           <i class="fa-solid fa-calculator"></i> Calculate Nesting
@@ -231,29 +168,24 @@
 
     </div>
 
-    <!-- RIGHT COLUMN: RESULTS & VISUAL NESTING LAYOUT -->
+    <!-- RIGHT COLUMN -->
     <div class="lg:col-span-7 space-y-6 results-main-column">
-
-      <!-- SUMMARY METRICS -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="bg-cardBg border border-cardBorder p-4 rounded-xl text-center">
           <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Stock Bars Required</div>
           <div class="text-3xl font-black text-white" id="resStockBars">0</div>
           <div class="text-[10px] text-zinc-400 mt-1" id="resStockLengthLabel">Mixed stock sizes</div>
         </div>
-
         <div class="bg-cardBg border border-cardBorder p-4 rounded-xl text-center">
           <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Total Cut Length</div>
           <div class="text-2xl font-black text-emerald-400" id="resTotalCutLength">0 mm</div>
           <div class="text-[10px] text-zinc-400 mt-1" id="resTotalPieces">0 pieces</div>
         </div>
-
         <div class="bg-cardBg border border-cardBorder p-4 rounded-xl text-center">
           <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Total Scrap / Offcut</div>
           <div class="text-2xl font-black text-red-400" id="resTotalOffcut">0 mm</div>
           <div class="text-[10px] text-zinc-400 mt-1" id="resKerfLoss">0mm blade loss</div>
         </div>
-
         <div class="bg-cardBg border border-cardBorder p-4 rounded-xl text-center">
           <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Overall Material Yield</div>
           <div class="text-3xl font-black text-white" id="resMaterialYield">0%</div>
@@ -261,7 +193,6 @@
         </div>
       </div>
 
-      <!-- VISUAL BAR NESTING LAYOUT -->
       <div class="bg-cardBg border border-cardBorder rounded-xl p-5 shadow-xl">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 border-b border-cardBorder pb-3">
           <div>
@@ -277,55 +208,40 @@
             <span class="text-xs text-zinc-400 font-mono" id="diagramHeaderCount">0 Stock Bars</span>
           </div>
         </div>
-
         <div id="nestingDiagramContainer" class="space-y-4 max-h-[500px] overflow-y-auto pr-1">
-          <div class="text-center py-12 text-zinc-500 text-xs">
-            Enter your stock options & cut lengths on the left and click <strong>Calculate</strong> to display the optimized layout.
-          </div>
+          <div class="text-center py-12 text-zinc-500 text-xs">Enter your cut lengths and click <strong>Calculate Nesting</strong>.</div>
         </div>
       </div>
-
     </div>
 
   </main>
 
-  <!-- FOOTER -->
   <footer class="bg-cardBg border-t border-cardBorder py-4 text-center text-xs text-zinc-500">
     ALLCON Fabrication & Engineering &copy; 2026 | Technical Buyer Tools
   </footer>
 
   <script>
-    const cutColors = [
-      '#0288d1', '#388e3c', '#f57c00', '#7b1fa2', '#009688', 
-      '#c2185b', '#512da8', '#00796b', '#afb42b', '#e64a19'
-    ];
-
+    const cutColors = ['#0288d1', '#388e3c', '#f57c00', '#7b1fa2', '#009688', '#c2185b', '#512da8', '#00796b', '#afb42b', '#e64a19'];
     let currentMode = 'single';
-
     let availableStocks = [
       { length: 6000, active: true },
       { length: 9000, active: true },
       { length: 11000, active: true },
       { length: 13000, active: false }
     ];
-
     let initialCutsSingle = [
       { length: 1450, qty: 4, label: 'Main Frame' },
       { length: 2300, qty: 3, label: 'Cross Beam' }
     ];
-
     let initialCutsMulti = [
       { material: '203x203x71 H-Beam', length: 1450, qty: 4, label: 'Main Frame' },
-      { material: '203x203x71 H-Beam', length: 2300, qty: 3, label: 'Cross Beam' },
-      { material: '203x133x25 I-Beam', length: 1800, qty: 6, label: 'Column' },
-      { material: '356x171x45 I-Beam', length: 3200, qty: 2, label: 'Rafter' }
+      { material: '203x133x25 I-Beam', length: 1800, qty: 6, label: 'Column' }
     ];
 
     function switchMode(mode) {
       currentMode = mode;
       const btnSingle = document.getElementById('btnModeSingle');
       const btnMulti = document.getElementById('btnModeMulti');
-
       if (mode === 'single') {
         btnSingle.className = 'flex-1 py-2 rounded-lg text-xs font-black uppercase transition bg-allconRed text-white shadow';
         btnMulti.className = 'flex-1 py-2 rounded-md text-xs font-bold uppercase transition text-zinc-400 hover:text-white';
@@ -335,7 +251,6 @@
         btnSingle.className = 'flex-1 py-2 rounded-md text-xs font-bold uppercase transition text-zinc-400 hover:text-white';
         document.getElementById('diagramSubtext').innerText = 'Consolidated Multi-Material Profile Layout';
       }
-
       renderHeaders();
       renderCutRows();
       calculateNesting();
@@ -343,6 +258,7 @@
 
     function renderHeaders() {
       const container = document.getElementById('cutTableHeaders');
+      if (!container) return;
       if (currentMode === 'single') {
         container.innerHTML = `
           <div class="col-span-5">Length (mm)</div>
@@ -363,6 +279,7 @@
 
     function renderStockInputs() {
       const container = document.getElementById('stockLengthsContainer');
+      if (!container) return;
       container.innerHTML = availableStocks.map((stock, idx) => `
         <div class="bg-[#181d24] p-2 rounded-lg border border-cardBorder flex flex-col gap-1">
           <div class="flex items-center justify-between">
@@ -374,57 +291,30 @@
       `).join('');
     }
 
-    function toggleStock(index, active) {
-      availableStocks[index].active = active;
-    }
-
-    function updateStockLength(index, val) {
-      availableStocks[index].length = Math.max(500, parseFloat(val) || 0);
-    }
+    function toggleStock(index, active) { availableStocks[index].active = active; calculateNesting(); }
+    function updateStockLength(index, val) { availableStocks[index].length = Math.max(500, parseFloat(val) || 0); calculateNesting(); }
 
     function renderCutRows() {
       const container = document.getElementById('cutListRows');
+      if (!container) return;
       const cutsList = currentMode === 'single' ? initialCutsSingle : initialCutsMulti;
-
       if (currentMode === 'single') {
         container.innerHTML = cutsList.map((cut, idx) => `
           <div class="grid grid-cols-12 gap-2 items-center bg-[#181d24] p-2.5 rounded-lg border border-cardBorder">
-            <div class="col-span-5">
-              <input type="number" value="${cut.length}" placeholder="1450" oninput="updateCutData(${idx}, 'length', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
-            </div>
-            <div class="col-span-3">
-              <input type="number" value="${cut.qty}" placeholder="4" oninput="updateCutData(${idx}, 'qty', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
-            </div>
-            <div class="col-span-3">
-              <input type="text" value="${cut.label || ''}" placeholder="Main Frame" oninput="updateCutData(${idx}, 'label', this.value)" class="w-full p-2 rounded text-xs">
-            </div>
-            <div class="col-span-1 text-right">
-              <button type="button" onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1" title="Remove line">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-              </button>
-            </div>
+            <div class="col-span-5"><input type="number" value="${cut.length}" oninput="updateCutData(${idx}, 'length', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1"></div>
+            <div class="col-span-3"><input type="number" value="${cut.qty}" oninput="updateCutData(${idx}, 'qty', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1"></div>
+            <div class="col-span-3"><input type="text" value="${cut.label || ''}" oninput="updateCutData(${idx}, 'label', this.value)" class="w-full p-2 rounded text-xs"></div>
+            <div class="col-span-1 text-right"><button type="button" onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
           </div>
         `).join('');
       } else {
         container.innerHTML = cutsList.map((cut, idx) => `
           <div class="grid grid-cols-12 gap-1.5 items-center bg-[#181d24] p-2 rounded-lg border border-cardBorder">
-            <div class="col-span-4">
-              <input type="text" value="${cut.material || ''}" placeholder="e.g. 203x203x71" oninput="updateCutData(${idx}, 'material', this.value)" class="w-full p-1.5 rounded text-xs font-bold text-allconRed">
-            </div>
-            <div class="col-span-3">
-              <input type="number" value="${cut.length}" placeholder="1450" oninput="updateCutData(${idx}, 'length', this.value)" class="w-full p-1.5 rounded text-xs font-bold" min="1">
-            </div>
-            <div class="col-span-2">
-              <input type="number" value="${cut.qty}" placeholder="4" oninput="updateCutData(${idx}, 'qty', this.value)" class="w-full p-1.5 rounded text-xs font-bold" min="1">
-            </div>
-            <div class="col-span-2">
-              <input type="text" value="${cut.label || ''}" placeholder="Tag" oninput="updateCutData(${idx}, 'label', this.value)" class="w-full p-1.5 rounded text-xs">
-            </div>
-            <div class="col-span-1 text-right">
-              <button type="button" onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1" title="Remove line">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-              </button>
-            </div>
+            <div class="col-span-4"><input type="text" value="${cut.material || ''}" oninput="updateCutData(${idx}, 'material', this.value)" class="w-full p-1.5 rounded text-xs font-bold text-allconRed"></div>
+            <div class="col-span-3"><input type="number" value="${cut.length}" oninput="updateCutData(${idx}, 'length', this.value)" class="w-full p-1.5 rounded text-xs font-bold" min="1"></div>
+            <div class="col-span-2"><input type="number" value="${cut.qty}" oninput="updateCutData(${idx}, 'qty', this.value)" class="w-full p-1.5 rounded text-xs font-bold" min="1"></div>
+            <div class="col-span-2"><input type="text" value="${cut.label || ''}" oninput="updateCutData(${idx}, 'label', this.value)" class="w-full p-1.5 rounded text-xs"></div>
+            <div class="col-span-1 text-right"><button type="button" onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
           </div>
         `).join('');
       }
@@ -441,40 +331,24 @@
     }
 
     function removeCutRow(index) {
-      if (currentMode === 'single') {
-        initialCutsSingle.splice(index, 1);
-      } else {
-        initialCutsMulti.splice(index, 1);
-      }
+      if (currentMode === 'single') { initialCutsSingle.splice(index, 1); }
+      else { initialCutsMulti.splice(index, 1); }
       renderCutRows();
       calculateNesting();
     }
 
     function updateCutData(index, field, value) {
       const cutsList = currentMode === 'single' ? initialCutsSingle : initialCutsMulti;
-      if (field === 'length' || field === 'qty') {
-        cutsList[index][field] = Math.max(0, parseFloat(value) || 0);
-      } else {
-        cutsList[index][field] = value;
-      }
+      if (field === 'length' || field === 'qty') { cutsList[index][field] = Math.max(0, parseFloat(value) || 0); }
+      else { cutsList[index][field] = value; }
     }
 
     function calculateNesting() {
-      const activeStockLengths = availableStocks
-        .filter(s => s.active && s.length > 0)
-        .map(s => s.length)
-        .sort((a, b) => b - a);
-
-      if (activeStockLengths.length === 0) {
-        alert('Please enable at least one stock bar length.');
-        return;
-      }
-
+      const activeStockLengths = availableStocks.filter(s => s.active && s.length > 0).map(s => s.length).sort((a, b) => b - a);
+      if (activeStockLengths.length === 0) { alert('Please enable at least one stock bar length.'); return; }
       const kerf = parseFloat(document.getElementById('kerfWidth').value) || 0;
       const maxAvailableStock = Math.max(...activeStockLengths);
-
       const cutsList = currentMode === 'single' ? initialCutsSingle : initialCutsMulti;
-
       let materialGroups = {};
 
       cutsList.forEach((item, groupIdx) => {
@@ -483,97 +357,51 @@
         const qty = parseInt(item.qty) || 0;
         const label = item.label || `Part ${groupIdx + 1}`;
         const color = cutColors[groupIdx % cutColors.length];
-
         if (length > 0 && qty > 0) {
-          if (length > maxAvailableStock) {
-            alert(`Cut length (${length}mm) exceeds maximum enabled stock length (${maxAvailableStock}mm).`);
-          }
-
-          if (!materialGroups[matName]) {
-            materialGroups[matName] = [];
-          }
-
-          for (let i = 0; i < qty; i++) {
-            materialGroups[matName].push({ length, label, color, id: `${groupIdx}_${i}` });
-          }
+          if (length > maxAvailableStock) { alert(`Cut length (${length}mm) exceeds max stock length (${maxAvailableStock}mm).`); }
+          if (!materialGroups[matName]) materialGroups[matName] = [];
+          for (let i = 0; i < qty; i++) materialGroups[matName].push({ length, label, color, id: `${groupIdx}_${i}` });
         }
       });
 
-      if (Object.keys(materialGroups).length === 0) {
-        alert('Please enter at least one valid cut length and quantity.');
-        return;
-      }
+      if (Object.keys(materialGroups).length === 0) { alert('Please enter valid cut lengths.'); return; }
 
       let allGroupedResults = {};
-
       Object.keys(materialGroups).forEach(matKey => {
         let pieces = materialGroups[matKey];
         pieces.sort((a, b) => b.length - a.length);
-
         let unassignedCuts = [...pieces];
         let bars = [];
-
         while (unassignedCuts.length > 0) {
           let bestBarChoice = null;
-
           activeStockLengths.forEach(stockLen => {
             let testBarCuts = [];
             let currentRem = stockLen;
-
             for (let i = 0; i < unassignedCuts.length; i++) {
               const cut = unassignedCuts[i];
               const neededSpace = testBarCuts.length === 0 ? cut.length : (cut.length + kerf);
-
-              if (currentRem >= neededSpace) {
-                testBarCuts.push({ cut, index: i });
-                currentRem -= neededSpace;
-              }
+              if (currentRem >= neededSpace) { testBarCuts.push({ cut, index: i }); currentRem -= neededSpace; }
             }
-
             if (testBarCuts.length > 0) {
               const usedLength = stockLen - currentRem;
               const yieldPct = usedLength / stockLen;
-
-              if (!bestBarChoice || yieldPct > bestBarChoice.yieldPct || (yieldPct === bestBarChoice.yieldPct && stockLen < bestBarChoice.stockLength)) {
-                bestBarChoice = {
-                  stockLength: stockLen,
-                  cuts: testBarCuts.map(tc => tc.cut),
-                  indicesToRemove: testBarCuts.map(tc => tc.index),
-                  remaining: currentRem,
-                  yieldPct: yieldPct
-                };
+              if (!bestBarChoice || yieldPct > bestBarChoice.yieldPct) {
+                bestBarChoice = { stockLength: stockLen, cuts: testBarCuts.map(tc => tc.cut), indicesToRemove: testBarCuts.map(tc => tc.index), remaining: currentRem, yieldPct: yieldPct };
               }
             }
           });
-
           if (bestBarChoice) {
-            bars.push({
-              id: bars.length + 1,
-              stockLength: bestBarChoice.stockLength,
-              cuts: bestBarChoice.cuts,
-              remaining: bestBarChoice.remaining
-            });
-
-            bestBarChoice.indicesToRemove.sort((a, b) => b - a).forEach(idx => {
-              unassignedCuts.splice(idx, 1);
-            });
-          } else {
-            break;
-          }
-        });
-
+            bars.push({ id: bars.length + 1, stockLength: bestBarChoice.stockLength, cuts: bestBarChoice.cuts, remaining: bestBarChoice.remaining });
+            bestBarChoice.indicesToRemove.sort((a, b) => b - a).forEach(idx => unassignedCuts.splice(idx, 1));
+          } else { break; }
+        }
         allGroupedResults[matKey] = bars;
       });
-
       renderResults(allGroupedResults, kerf);
     }
 
     function renderResults(allGroupedResults, kerf) {
-      let grandTotalCutLength = 0;
-      let grandTotalPiecesCount = 0;
-      let grandTotalStockLength = 0;
-      let totalStockBarsCount = 0;
-
+      let grandTotalCutLength = 0, grandTotalPiecesCount = 0, grandTotalStockLength = 0, totalStockBarsCount = 0;
       Object.keys(allGroupedResults).forEach(mat => {
         const bars = allGroupedResults[mat];
         totalStockBarsCount += bars.length;
@@ -588,43 +416,31 @@
       const yieldPercent = grandTotalStockLength > 0 ? ((grandTotalCutLength / grandTotalStockLength) * 100).toFixed(1) : 0;
 
       document.getElementById('resStockBars').innerText = totalStockBarsCount;
-      document.getElementById('resStockLengthLabel').innerText = `${totalStockBarsCount} bar(s) across ${Object.keys(allGroupedResults).length} profile(s)`;
-
+      document.getElementById('resStockLengthLabel').innerText = `${totalStockBarsCount} bar(s) selected`;
       document.getElementById('resTotalCutLength').innerText = `${grandTotalCutLength.toLocaleString()} mm`;
       document.getElementById('resTotalPieces').innerText = `${grandTotalPiecesCount} pieces total`;
-
       document.getElementById('resTotalOffcut').innerText = `${grandTotalOffcut.toLocaleString()} mm`;
       document.getElementById('resKerfLoss').innerText = `${kerf}mm blade loss`;
-
       document.getElementById('resMaterialYield').innerText = `${yieldPercent}%`;
-      
-      const efficiencyEl = document.getElementById('resEfficiencyRating');
-      if (yieldPercent >= 90) {
-        efficiencyEl.innerText = '🔥 High Efficiency';
-        efficiencyEl.className = 'text-[10px] text-emerald-400 mt-1 font-bold';
-      } else if (yieldPercent >= 75) {
-        efficiencyEl.innerText = '👍 Moderate Yield';
-        efficiencyEl.className = 'text-[10px] text-amber-400 mt-1 font-bold';
-      } else {
-        efficiencyEl.innerText = '⚠️ High Scrap Ratio';
-        efficiencyEl.className = 'text-[10px] text-red-400 mt-1 font-bold';
-      }
 
-      document.getElementById('diagramHeaderCount').innerText = `${totalStockBarsCount} Total Stock Bars`;
+      const efficiencyEl = document.getElementById('resEfficiencyRating');
+      if (yieldPercent >= 90) { efficiencyEl.innerText = '🔥 High Efficiency'; efficiencyEl.className = 'text-[10px] text-emerald-400 mt-1 font-bold'; }
+      else if (yieldPercent >= 75) { efficiencyEl.innerText = '👍 Moderate Yield'; efficiencyEl.className = 'text-[10px] text-amber-400 mt-1 font-bold'; }
+      else { efficiencyEl.innerText = '⚠️ High Scrap Ratio'; efficiencyEl.className = 'text-[10px] text-red-400 mt-1 font-bold'; }
+
+      document.getElementById('diagramHeaderCount').innerText = `${totalStockBarsCount} Stock Bars`;
 
       const diagramContainer = document.getElementById('nestingDiagramContainer');
       let combinedDiagramHtml = '';
 
       Object.keys(allGroupedResults).forEach(matName => {
         const bars = allGroupedResults[matName];
-
-        const matSubtotalCut = bars.reduce((acc, b) => acc + b.cuts.reduce((s, c) => s + c.length, 0), 0);
         const matSubtotalStock = bars.reduce((acc, b) => acc + b.stockLength, 0);
+        const matSubtotalCut = bars.reduce((acc, b) => acc + b.cuts.reduce((s, c) => s + c.length, 0), 0);
         const matSubtotalOffcut = matSubtotalStock - matSubtotalCut;
 
-        let categoryHeaderHtml = '';
         if (currentMode === 'multi') {
-          categoryHeaderHtml = `
+          combinedDiagramHtml += `
             <div class="bg-[#1f2630] border-l-4 border-allconRed p-2.5 rounded-r-lg mb-3 mt-4 flex justify-between items-center">
               <span class="font-black text-sm text-white uppercase tracking-wider">${matName}</span>
               <span class="text-xs font-bold text-zinc-300">${bars.length} Bar(s) Needed | Total Offcut: <span class="text-red-400">${matSubtotalOffcut}mm</span></span>
@@ -632,21 +448,20 @@
           `;
         }
 
-        const barsHtml = bars.map(bar => {
+        combinedDiagramHtml += bars.map(bar => {
           const offcutPercent = ((bar.remaining / bar.stockLength) * 100).toFixed(1);
-
           const cutsHtml = bar.cuts.map(cut => {
             const cutPct = ((cut.length / bar.stockLength) * 100).toFixed(2);
             return `
               <div class="cut-segment" style="width: ${cutPct}%; background-color: ${cut.color};" title="${cut.label}: ${cut.length}mm">
                 <span style="font-weight: 800; font-size: 11px;">${cut.length}mm</span>
-                ${cut.label ? `<span style="font-weight: 600; opacity: 0.9; font-size: 9px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${cut.label}</span>` : ''}
+                ${cut.label ? `<span style="font-weight: 600; opacity: 0.9; font-size: 9px;">${cut.label}</span>` : ''}
               </div>
             `;
           }).join('');
 
           const offcutHtml = bar.remaining > 0 ? `
-            <div class="offcut-segment" style="width: ${offcutPercent}%;" title="Scrap / Offcut: ${bar.remaining}mm">
+            <div class="offcut-segment" style="width: ${offcutPercent}%;" title="Offcut: ${bar.remaining}mm">
               <span>${bar.remaining}mm</span>
             </div>
           ` : '';
@@ -654,24 +469,19 @@
           return `
             <div class="bg-[#181d24] border border-cardBorder rounded-xl p-3 mb-3">
               <div class="flex justify-between items-center text-xs font-bold mb-2">
-                <span class="text-white">${currentMode === 'multi' ? matName + ' - ' : ''}Bar #${bar.id} <span class="text-allconRed ml-1 font-black">(${bar.stockLength}mm Stock)</span></span>
+                <span class="text-white">Stock Bar #${bar.id} <span class="text-allconRed ml-1 font-black">(${bar.stockLength}mm Stock)</span></span>
                 <span class="text-zinc-400">Used: ${(bar.stockLength - bar.remaining)}mm / Offcut: <span class="text-red-400">${bar.remaining}mm</span></span>
               </div>
-              <div class="bar-visual-container">
-                ${cutsHtml}
-                ${offcutHtml}
-              </div>
+              <div class="bar-visual-container">${cutsHtml}${offcutHtml}</div>
             </div>
           `;
         }).join('');
-
-        combinedDiagramHtml += categoryHeaderHtml + barsHtml;
       });
 
       diagramContainer.innerHTML = combinedDiagramHtml;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', () => {
       renderStockInputs();
       renderHeaders();
       renderCutRows();
