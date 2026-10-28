@@ -52,23 +52,25 @@
       position: relative;
       overflow: hidden;
       display: flex;
-      height: 38px;
+      height: 48px;
       width: 100%;
     }
 
     .cut-segment {
       height: 100%;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 800;
       color: #ffffff;
       border-right: 2px solid #0d0f12;
       overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      padding: 0 4px;
+      padding: 2px 4px;
+      text-align: center;
+      line-height: 1.1;
+      word-break: break-word;
       transition: all 0.2s;
     }
 
@@ -80,10 +82,48 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       overflow: hidden;
-      white-space: nowrap;
+      padding: 0 2px;
+      text-align: center;
+      line-height: 1.1;
+    }
+
+    /* INK-FRIENDLY PRINT / PDF EXPORT OVERRIDES */
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        color: #111111 !important;
+      }
+      header, footer, button, .no-print {
+        display: none !important;
+      }
+      .bg-cardBg, .bg-\[\#181d24\], .bg-\[\#090a0c\] {
+        background-color: #ffffff !important;
+        border-color: #d1d5db !important;
+        box-shadow: none !important;
+        color: #111111 !important;
+      }
+      .text-white, .text-zinc-400, .text-zinc-500 {
+        color: #111111 !important;
+      }
+      .bar-visual-container {
+        background-color: #f3f4f6 !important;
+        border: 1px solid #9ca3af !important;
+      }
+      .cut-segment {
+        border-right: 1px solid #ffffff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .offcut-segment {
+        background-color: #fee2e2 !important;
+        border: 1px dashed #dc2626 !important;
+        color: #991b1b !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
     }
   </style>
 </head>
@@ -454,14 +494,15 @@
           const cutPct = ((cut.length / bar.stockLength) * 100).toFixed(2);
           return `
             <div class="cut-segment" style="width: ${cutPct}%; background-color: ${cut.color};" title="${cut.label}: ${cut.length}mm">
-              ${cut.length}mm ${cut.label ? `(${cut.label})` : ''}
+              <span style="font-weight: 800; font-size: 11px;">${cut.length}mm</span>
+              ${cut.label ? `<span style="font-weight: 600; opacity: 0.9; font-size: 9px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${cut.label}</span>` : ''}
             </div>
           `;
         }).join('');
 
         const offcutHtml = bar.remaining > 0 ? `
           <div class="offcut-segment" style="width: ${offcutPercent}%;" title="Scrap / Offcut: ${bar.remaining}mm">
-            ${bar.remaining}mm rem
+            <span>${bar.remaining}mm</span>
           </div>
         ` : '';
 
