@@ -174,11 +174,11 @@
     <div class="lg:col-span-5 space-y-6 input-sidebar-column">
 
       <!-- MODE TOGGLE BANNER -->
-      <div class="bg-cardBg border border-cardBorder rounded-xl p-2.5 shadow-xl flex items-center justify-between gap-2 mode-toggle-banner">
-        <button id="btnModeSingle" onclick="switchMode('single')" class="flex-1 py-2 rounded-lg text-xs font-black uppercase transition bg-allconRed text-white shadow">
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-2 shadow-xl flex items-center justify-between gap-2 mode-toggle-banner">
+        <button id="btnModeSingle" type="button" onclick="switchMode('single')" class="flex-1 py-2 rounded-lg text-xs font-black uppercase transition bg-allconRed text-white shadow">
           <i class="fa-solid fa-cube mr-1.5"></i> Single Profile Mode
         </button>
-        <button id="btnModeMulti" onclick="switchMode('multi')" class="flex-1 py-2 rounded-md text-xs font-bold uppercase transition text-zinc-400 hover:text-white">
+        <button id="btnModeMulti" type="button" onclick="switchMode('multi')" class="flex-1 py-2 rounded-md text-xs font-bold uppercase transition text-zinc-400 hover:text-white">
           <i class="fa-solid fa-cubes mr-1.5"></i> Multi-Material BOM
         </button>
       </div>
@@ -209,7 +209,7 @@
           <h2 class="text-sm font-black text-allconRed uppercase tracking-wider flex items-center gap-2">
             <i class="fa-solid fa-list-check"></i> 2. Required Cut Lengths
           </h2>
-          <button onclick="addCutRow()" class="bg-allconRed hover:bg-allconRedHover text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
+          <button type="button" onclick="addCutRow()" class="bg-allconRed hover:bg-allconRedHover text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
             <i class="fa-solid fa-plus text-[10px]"></i> Add Length
           </button>
         </div>
@@ -224,7 +224,7 @@
           <!-- Dynamic Input Rows inserted here -->
         </div>
 
-        <button onclick="calculateNesting()" class="w-full mt-6 bg-allconRed hover:bg-allconRedHover text-white font-black py-3 rounded-lg text-sm shadow-lg transition uppercase tracking-wider flex items-center justify-center gap-2">
+        <button type="button" onclick="calculateNesting()" class="w-full mt-6 bg-allconRed hover:bg-allconRedHover text-white font-black py-3 rounded-lg text-sm shadow-lg transition uppercase tracking-wider flex items-center justify-center gap-2">
           <i class="fa-solid fa-calculator"></i> Calculate Nesting
         </button>
       </div>
@@ -271,7 +271,7 @@
             <p class="text-[11px] text-zinc-400" id="diagramSubtext">Optimized multi-length bar layout view</p>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="window.print()" class="bg-allconRed hover:bg-allconRedHover text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow no-print">
+            <button type="button" onclick="window.print()" class="bg-allconRed hover:bg-allconRedHover text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow no-print">
               <i class="fa-solid fa-file-pdf"></i> Download PDF
             </button>
             <span class="text-xs text-zinc-400 font-mono" id="diagramHeaderCount">0 Stock Bars</span>
@@ -390,16 +390,16 @@
         container.innerHTML = cutsList.map((cut, idx) => `
           <div class="grid grid-cols-12 gap-2 items-center bg-[#181d24] p-2.5 rounded-lg border border-cardBorder">
             <div class="col-span-5">
-              <input type="number" value="${cut.length}" placeholder="1450" onchange="updateCutData(${idx}, 'length', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
+              <input type="number" value="${cut.length}" placeholder="1450" oninput="updateCutData(${idx}, 'length', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
             </div>
             <div class="col-span-3">
-              <input type="number" value="${cut.qty}" placeholder="4" onchange="updateCutData(${idx}, 'qty', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
+              <input type="number" value="${cut.qty}" placeholder="4" oninput="updateCutData(${idx}, 'qty', this.value)" class="w-full p-2 rounded text-xs font-bold" min="1">
             </div>
             <div class="col-span-3">
-              <input type="text" value="${cut.label || ''}" placeholder="Main Frame" onchange="updateCutData(${idx}, 'label', this.value)" class="w-full p-2 rounded text-xs">
+              <input type="text" value="${cut.label || ''}" placeholder="Main Frame" oninput="updateCutData(${idx}, 'label', this.value)" class="w-full p-2 rounded text-xs">
             </div>
             <div class="col-span-1 text-right">
-              <button onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1" title="Remove line">
+              <button type="button" onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1" title="Remove line">
                 <i class="fa-solid fa-trash-can text-xs"></i>
               </button>
             </div>
@@ -409,19 +409,19 @@
         container.innerHTML = cutsList.map((cut, idx) => `
           <div class="grid grid-cols-12 gap-1.5 items-center bg-[#181d24] p-2 rounded-lg border border-cardBorder">
             <div class="col-span-4">
-              <input type="text" value="${cut.material || ''}" placeholder="e.g. 203x203x71" onchange="updateCutData(${idx}, 'material', this.value)" class="w-full p-1.5 rounded text-xs font-bold text-allconRed">
+              <input type="text" value="${cut.material || ''}" placeholder="e.g. 203x203x71" oninput="updateCutData(${idx}, 'material', this.value)" class="w-full p-1.5 rounded text-xs font-bold text-allconRed">
             </div>
             <div class="col-span-3">
-              <input type="number" value="${cut.length}" placeholder="1450" onchange="updateCutData(${idx}, 'length', this.value)" class="w-full p-1.5 rounded text-xs font-bold" min="1">
+              <input type="number" value="${cut.length}" placeholder="1450" oninput="updateCutData(${idx}, 'length', this.value)" class="w-full p-1.5 rounded text-xs font-bold" min="1">
             </div>
             <div class="col-span-2">
-              <input type="number" value="${cut.qty}" placeholder="4" onchange="updateCutData(${idx}, 'qty', this.value)" class="w-full p-1.5 rounded text-xs font-bold" min="1">
+              <input type="number" value="${cut.qty}" placeholder="4" oninput="updateCutData(${idx}, 'qty', this.value)" class="w-full p-1.5 rounded text-xs font-bold" min="1">
             </div>
             <div class="col-span-2">
-              <input type="text" value="${cut.label || ''}" placeholder="Tag" onchange="updateCutData(${idx}, 'label', this.value)" class="w-full p-1.5 rounded text-xs">
+              <input type="text" value="${cut.label || ''}" placeholder="Tag" oninput="updateCutData(${idx}, 'label', this.value)" class="w-full p-1.5 rounded text-xs">
             </div>
             <div class="col-span-1 text-right">
-              <button onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1" title="Remove line">
+              <button type="button" onclick="removeCutRow(${idx})" class="text-zinc-500 hover:text-red-400 font-bold p-1" title="Remove line">
                 <i class="fa-solid fa-trash-can text-xs"></i>
               </button>
             </div>
