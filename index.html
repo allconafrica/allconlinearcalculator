@@ -143,7 +143,7 @@
         </div>
         <div class="pt-2 border-t border-cardBorder">
           <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Blade / Kerf Width (mm)</label>
-          <input type="number" id="kerfWidth" value="3" step="0.5" min="0" class="w-full p-2.5 rounded-lg border font-bold text-sm">
+          <input type="number" id="kerfWidth" value="3" step="0.5" min="0" oninput="saveSettings()" class="w-full p-2.5 rounded-lg border font-bold text-sm">
         </div>
       </div>
 
@@ -223,23 +223,44 @@
   <script>
     const cutColors = ['#0288d1', '#388e3c', '#f57c00', '#7b1fa2', '#009688', '#c2185b', '#512da8', '#00796b', '#afb42b', '#e64a19'];
     let currentMode = 'single';
-    let availableStocks = [
+
+    // Stock & setup preferences ARE remembered
+    let availableStocks = JSON.parse(localStorage.getItem('allcon_stocks')) || [
       { length: 6000, active: true },
       { length: 9000, active: true },
       { length: 11000, active: true },
       { length: 13000, active: false }
     ];
+
+    // Cut lists start fresh with standard defaults every time (not cached)
     let initialCutsSingle = [
       { length: 1450, qty: 4, label: 'Main Frame' },
       { length: 2300, qty: 3, label: 'Cross Beam' }
     ];
+
     let initialCutsMulti = [
       { material: '203x203x71 H-Beam', length: 1450, qty: 4, label: 'Main Frame' },
       { material: '203x133x25 I-Beam', length: 1800, qty: 6, label: 'Column' }
     ];
 
+    let savedKerf = localStorage.getItem('allcon_kerf');
+    if (savedKerf !== null) {
+      setTimeout(() => { document.getElementById('kerfWidth').value = savedKerf; }, 50);
+    }
+
+    let savedMode = localStorage.getItem('allcon_mode');
+    if (savedMode) { currentMode = savedMode; }
+
+    function saveSettings() {
+      localStorage.setItem('allcon_stocks', JSON.stringify(availableStocks));
+      localStorage.setItem('allcon_kerf', document.getElementById('kerfWidth').value);
+      localStorage.setItem('allcon_mode', currentMode);
+      // Note: Cut lists intentionally NOT saved to localStorage so they reset on refresh/reopen
+    }
+
     function switchMode(mode) {
       currentMode = mode;
+      saveSettings();
       const btnSingle = document.getElementById('btnModeSingle');
       const btnMulti = document.getElementById('btnModeMulti');
       if (mode === 'single') {
@@ -291,8 +312,17 @@
       `).join('');
     }
 
-    function toggleStock(index, active) { availableStocks[index].active = active; calculateNesting(); }
-    function updateStockLength(index, val) { availableStocks[index].length = Math.max(500, parseFloat(val) || 0); calculateNesting(); }
+    function toggleStock(index, active) { 
+      availableStocks[index].active = active; 
+      saveSettings();
+      calculateNesting(); 
+    }
+    
+    function updateStockLength(index, val) { 
+      availableStocks[index].length = Math.max(500, parseFloat(val) || 0); 
+      saveSettings();
+      calculateNesting(); 
+    }
 
     function renderCutRows() {
       const container = document.getElementById('cutListRows');
@@ -344,6 +374,7 @@
     }
 
     function calculateNesting() {
+      saveSettings();
       const activeStockLengths = availableStocks.filter(s => s.active && s.length > 0).map(s => s.length).sort((a, b) => b - a);
       if (activeStockLengths.length === 0) { alert('Please enable at least one stock bar length.'); return; }
       const kerf = parseFloat(document.getElementById('kerfWidth').value) || 0;
@@ -482,9 +513,12 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      if (savedMode === 'multi') {
+        switchMode('multi');
+      } else {
+        switchMode('single');
+      }
       renderStockInputs();
-      renderHeaders();
-      renderCutRows();
       calculateNesting();
     });
   </script>
